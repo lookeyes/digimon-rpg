@@ -1,0 +1,8 @@
+{
+  "appId": "com.digimonrpg.app",
+  "appName": "数码宝贝RPG",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
