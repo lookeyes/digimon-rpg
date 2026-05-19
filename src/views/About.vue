@@ -56,16 +56,57 @@
       <p style="font-size:11px;color:var(--text-dim);margin-top:4px;">能力值 = 种族值 + 成长率 × (等级-1) + 自由点分配</p>
     </div>
 
+    <div class="about-section">
+      <div class="about-section-title">🎭 25种性格</div>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">性格影响两项能力值，一项提升+10%，另一项降低-10%（5种无修正）</p>
+      <div class="about-nature-grid">
+        <div v-for="n in allNatures" :key="n.id" class="about-nature-item">
+          <div class="about-nature-name">{{ n.name }}</div>
+          <div class="about-nature-mod">
+            <span v-if="n.boost" style="color:var(--green);">{{ statLabel(n.boost) }}+10%</span>
+            <span v-if="n.reduce" style="color:var(--red);">{{ statLabel(n.reduce) }}-10%</span>
+            <span v-if="!n.boost&&!n.reduce" style="color:var(--text-dim);">无修正</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-section-title">🌟 40种天赋</div>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">每只数码宝贝随机获得2个天赋。白68.9% / 蓝30% / 紫1% / 红0.1%</p>
+      <div v-for="rarity in ['red','purple','blue','white']" :key="rarity" style="margin-bottom:10px;">
+        <div class="about-rarity-label" :style="{ color: rarityColor(rarity) }">{{ rarityLabel(rarity) }} ({{ talentsByRarity[rarity].length }})</div>
+        <div class="about-talent-list">
+          <div v-for="t in talentsByRarity[rarity]" :key="t.id" class="about-talent-item">
+            <span class="about-talent-name" :style="{ color: rarityColor(rarity) }">{{ t.name }}</span>
+            <span class="about-talent-desc">{{ t.desc }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <BottomNav/>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { fields } from '../data/digimonData.js'
+import { fields, natures, talents } from '../data/digimonData.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const fieldList = computed(() => fields)
+const allNatures = computed(() => natures)
+
+const talentsByRarity = computed(() => ({
+  red: talents.filter(t => t.rarity === 'red'),
+  purple: talents.filter(t => t.rarity === 'purple'),
+  blue: talents.filter(t => t.rarity === 'blue'),
+  white: talents.filter(t => t.rarity === 'white')
+}))
+
+function statLabel(s) { return { atk:'攻击', def:'防御', spAtk:'特攻', spDef:'特防', spd:'速度' }[s]||s }
+function rarityColor(r) { return { red:'#ff4444', purple:'#b44dff', blue:'#4e9fff', white:'#aaa' }[r]||'#888' }
+function rarityLabel(r) { return { red:'🔴 红色传说', purple:'🟣 紫色稀有', blue:'🔵 蓝色精良', white:'⚪ 白色普通' }[r]||r }
 </script>
 
 <style scoped>
@@ -88,4 +129,13 @@ const fieldList = computed(() => fields)
 .about-stat-row:not(:last-child) { border-bottom:1px solid var(--border); }
 .about-stat-row span:first-child { font-weight:700; min-width:80px; color:var(--accent); }
 .about-stat-row span:last-child { color:var(--text-dim); }
+.about-nature-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.about-nature-item { display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:12px; }
+.about-nature-name { font-weight:700; }
+.about-nature-mod { display:flex; gap:6px; font-size:11px; }
+.about-rarity-label { font-size:13px; font-weight:700; margin-bottom:4px; }
+.about-talent-list { display:flex; flex-direction:column; gap:3px; }
+.about-talent-item { display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; padding:5px 10px; }
+.about-talent-name { font-size:12px; font-weight:700; white-space:nowrap; }
+.about-talent-desc { font-size:11px; color:var(--text-dim); text-align:right; }
 </style>
