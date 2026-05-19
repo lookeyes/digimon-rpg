@@ -42,6 +42,10 @@
         <div class="menu-icon">📋</div>
         <div class="menu-label">介绍</div>
       </router-link>
+      <router-link to="/backpack" class="menu-item">
+        <div class="menu-icon">🎒</div>
+        <div class="menu-label">背包</div>
+      </router-link>
     </div>
 
     <div style="margin-top: 20px; text-align: center;">
