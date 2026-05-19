@@ -49,13 +49,28 @@
           <div class="dex-stat-row"><span>速度</span><span>{{ selected.baseSpd||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpd) }})</span></span></div>
           <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">* 种族值随等级和成长率计算实际能力</div>
         </div>
-        <div v-if="selected.abilities" style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">
-          <span v-for="a in selected.abilities" :key="a" class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);margin:2px;">⚡{{ abilityName(a) }}</span>
+        <div v-if="abilityList.length>0" style="margin-top:8px;text-align:left;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⚡ 特性</div>
+          <div v-for="a in abilityList" :key="a.id" class="dex-ability-item">
+            <span class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);font-weight:700;">{{ a.name }}</span>
+            <span style="font-size:11px;color:var(--text-dim);line-height:1.4;">{{ a.desc }}</span>
+          </div>
         </div>
-        <div v-if="evoInfo" style="margin-top:8px;">
-          <div style="font-size:14px;font-weight:700;margin-bottom:6px;">进化路线</div>
-          <div class="dex-evo-chain"><span v-for="(step, i) in evoChain" :key="i">{{ i>0?' → ':'' }}<span :class="step.name===selected.name?'dex-evo-current':''">{{ step.name }}</span></span></div>
-          <div v-if="nextEvos.length>0" style="font-size:12px;color:var(--text-dim);margin-top:6px;">→ {{ nextEvos.map(e=>e.name).join(' / ') }}</div>
+        <div style="margin-top:12px;text-align:left;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">🔗 进化路线</div>
+          <div class="dex-evo-full">
+            <div v-for="(step,i) in fullEvoChain" :key="i" class="dex-evo-step" :class="{ current: step.name===selected.name, next: step.isNext }">
+              <div class="dex-evo-step-name">{{ step.name }}</div>
+              <div class="dex-evo-step-tags">
+                <span class="tag" style="font-size:10px;background:var(--bg-primary);color:var(--text-dim);">{{ step.stage }}</span>
+                <span v-if="step.condition" class="tag" style="font-size:10px;background:var(--bg-primary);color:var(--accent);">Lv.{{ step.condition }}</span>
+              </div>
+              <div v-if="step.requirements" class="dex-evo-req">
+                <span v-for="(v,f) in step.requirements" :key="f" class="tag field-tag" style="font-size:9px;" :style="{ background: fieldColor(f)+'22', borderColor: fieldColor(f), color: fieldColor(f) }">{{ fieldEmoji(f) }} {{ v }}</span>
+              </div>
+            </div>
+            <div v-if="fullEvoChain.length===0" style="font-size:12px;color:var(--text-dim);">暂无进化信息</div>
+          </div>
         </div>
         <button class="btn btn-primary" style="width:auto;margin-top:16px;padding:8px 24px;" @click="showModal=false">关闭</button>
       </div>
@@ -182,41 +197,87 @@ function fieldColor(f) { const fd = fields.find(x=>x.id===f); return fd?.color||
 function fieldEmoji(f) { const fd = fields.find(x=>x.id===f); return fd?.emoji||'?' }
 function fieldName(f) { const fd = fields.find(x=>x.id===f); return fd?.name||f }
 function abilityName(id) { return abilities[id]?.name||id }
-
-// Evo chain for selected
-const evoChain = computed(() => {
-  if (!selected.value) return []
-  const name = selected.value.name
-  // Find the chain
-  const chain = [selected.value]
-  // Go backwards: who evolves into this?
-  let current = name
-  // Simple: just show pre-evo from template evolutionTree
-  for (const t of digimonTemplates) {
-    if (t.evolutionTree) {
-      for (const e of t.evolutionTree) {
-        if (e.name === current) { chain.unshift(t); current = t.name; break }
-      }
-    }
-  }
-  // Also check evoChains
-  for (const [from, targets] of Object.entries(evoChains)) {
-    for (const tgt of targets) {
-      if (tgt.name === current) { chain.unshift({ name:from, stage:tgt.stage==='完全体'?'成熟期':tgt.stage==='究极体'?'完全体':'成熟期' }); current = from; break }
-    }
-  }
-  return chain
+function abilityDesc(id) { return abilities[id]?.desc||'' }
+const abilityList = computed(() => {
+  if (!selected.value?.abilities) return []
+  return selected.value.abilities.map(id => ({ id, name: abilityName(id), desc: abilityDesc(id) })).filter(a => a.name)
 })
 
-const nextEvos = computed(() => {
+// Build full evolutionary chain from base form to final
+const fullEvoChain = computed(() => {
   if (!selected.value) return []
   const name = selected.value.name
-  if (evoChains[name]) return evoChains[name]
-  // Check template evolutionTree
-  for (const t of digimonTemplates) {
-    if (t.name === name || t.id === name) return t.evolutionTree||[]
+  // Find the earliest ancestor (成长期)
+  let root = name
+  let rootStage = selected.value.stage
+  for (let i = 0; i < 5; i++) {
+    let found = false
+    // Check template evolutionTree (成长期 → 成熟期)
+    for (const t of digimonTemplates) {
+      if (t.evolutionTree) {
+        for (const e of t.evolutionTree) {
+          if (e.name === root) { root = t.name; rootStage = t.stage; found = true; break }
+        }
+      }
+      if (found) break
+    }
+    // Check evoChains
+    if (!found) {
+      for (const [from, targets] of Object.entries(evoChains)) {
+        if (targets.some(t => t.name === root)) { root = from; found = true; break }
+      }
+    }
+    if (!found) break
   }
-  return []
+
+  // Walk forward from root to build the chain
+  const chain = []
+  let current = root
+  for (let i = 0; i < 5; i++) {
+    // Find current in templates
+    const tpl = digimonTemplates.find(t => t.name === current)
+    const entry = { name: current, stage: tpl?.stage || '', condition: null, requirements: null, isNext: false }
+    chain.push(entry)
+
+    // Find next evolution
+    let next = null
+    if (tpl?.evolutionTree?.length > 0) {
+      for (const e of tpl.evolutionTree) {
+        if (!chain.find(c => c.name === e.name)) {
+          next = { name: e.name, stage: e.stage, condition: e.condition, requirements: e.fieldExpRequired }
+          break
+        }
+      }
+    }
+    if (!next && evoChains[current]) {
+      for (const e of evoChains[current]) {
+        if (!chain.find(c => c.name === e.name)) {
+          next = { name: e.name, stage: e.stage, condition: e.condition, requirements: e.fieldExpRequired }
+          break
+        }
+      }
+    }
+    if (!next && evoChains[current]?.length > 1) {
+      // Try second branch
+      for (const e of evoChains[current]) {
+        if (!chain.find(c => c.name === e.name)) {
+          next = { name: e.name, stage: e.stage, condition: e.condition, requirements: e.fieldExpRequired }
+          break
+        }
+      }
+    }
+    if (!next) break
+    current = next.name
+  }
+
+  // Mark the selected one and next available
+  let foundSelected = false
+  for (const step of chain) {
+    if (step.name === name) foundSelected = true
+    else if (!foundSelected) step.isNext = true
+  }
+
+  return chain
 })
 </script>
 
@@ -238,4 +299,12 @@ const nextEvos = computed(() => {
 .dex-stat-row { display:flex; justify-content:space-between; font-size:12px; padding:2px 0; color:var(--text-dim); }
 .dex-evo-chain { font-size:13px; color:var(--text-dim); }
 .dex-evo-current { color:var(--accent); font-weight:700; }
+.dex-ability-item { display:flex; flex-direction:column; gap:2px; background:var(--bg-primary); border-radius:8px; padding:8px 10px; margin-bottom:6px; }
+.dex-evo-full { display:flex; flex-wrap:wrap; gap:4px; }
+.dex-evo-step { flex:1; min-width:70px; background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; padding:8px; text-align:center; }
+.dex-evo-step.current { border-color:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+.dex-evo-step.next { border-color:var(--green); }
+.dex-evo-step-name { font-size:12px; font-weight:700; margin-bottom:4px; }
+.dex-evo-step-tags { display:flex; gap:3px; justify-content:center; margin-bottom:3px; }
+.dex-evo-req { display:flex; gap:2px; flex-wrap:wrap; justify-content:center; }
 </style>
