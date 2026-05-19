@@ -47,7 +47,7 @@
           <div class="dex-stat-row"><span>特攻</span><span>{{ selected.baseSpAtk||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpAtk) }})</span></span></div>
           <div class="dex-stat-row"><span>特防</span><span>{{ selected.baseSpDef||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpDef) }})</span></span></div>
           <div class="dex-stat-row"><span>速度</span><span>{{ selected.baseSpd||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpd) }})</span></span></div>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">* 进化形态显示成长期基础值，实际能力按阶段倍率提升</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">* 种族值随等级和成长率计算实际能力</div>
         </div>
         <div v-if="selected.abilities" style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">
           <span v-for="a in selected.abilities" :key="a" class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);margin:2px;">⚡{{ abilityName(a) }}</span>
