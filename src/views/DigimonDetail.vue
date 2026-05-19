@@ -27,13 +27,15 @@
     <div class="detail-section">
       <h4>技能（已装备 {{ equippedSkills.length }}/4 · 已学 {{ allLearnedSkills.length }}/10）</h4>
       <div class="skill-slots">
-        <div v-for="s in equippedSkills" :key="s.id" class="skill-slot equipped" @click="unequip(s.id)"><div class="skill-name">{{ s.name }}</div><div class="skill-tags"><span class="tag" :style="skillTagStyle(s)">{{ skillTypeLabel(s.type) }}</span><span class="tag field-tag" :style="skillFieldStyle(s)">{{ getField(s.field)?.emoji }}</span><span class="tag" :style="{ background:isUniqueSkill(s.id)?'#ffd70022':'#8892b022',borderColor:isUniqueSkill(s.id)?'#ffd700':'#8892b0',color:isUniqueSkill(s.id)?'#ffd700':'#8892b0',fontSize:'10px'}">{{ isUniqueSkill(s.id)?'专属':'通用' }}</span></div></div>
+        <div v-for="s in equippedSkills" :key="s.id" class="skill-slot equipped" @click="unequip(s.id)"><div class="skill-name">{{ s.name }}</div><div class="skill-stats"><span v-if="s.power" class="skill-stat">威力{{ s.power }}</span><span v-else class="skill-stat">变化</span><span class="skill-stat" style="color:#4e9fff;">MP{{ s.mpCost }}</span><span v-if="s.accuracy<100" class="skill-stat" style="color:#ff6b35;">命中{{ s.accuracy }}</span></div><div class="skill-desc">{{ s.description }}</div><div class="skill-tags"><span class="tag" :style="skillTagStyle(s)">{{ skillTypeLabel(s.type) }}</span><span class="tag field-tag" :style="skillFieldStyle(s)">{{ getField(s.field)?.emoji }}</span><span class="tag" :style="{ background:isUniqueSkill(s.id)?'#ffd70022':'#8892b022',borderColor:isUniqueSkill(s.id)?'#ffd700':'#8892b0',color:isUniqueSkill(s.id)?'#ffd700':'#8892b0',fontSize:'10px'}">{{ isUniqueSkill(s.id)?'专属':'通用' }}</span></div></div>
         <div v-for="i in (4-equippedSkills.length)" :key="'e'+i" class="skill-slot empty">空</div>
       </div>
       <div v-if="unequippedSkills.length>0" style="margin-top:12px;">
         <h4 style="font-size:13px;color:var(--text-dim);margin-bottom:6px;">未装备技能</h4>
         <div v-for="s in unequippedSkills" :key="s.id" class="skill-slot unequipped" style="position:relative;margin-bottom:6px;" @click="equip(s.id)">
           <div class="skill-name">{{ s.name }}</div>
+          <div class="skill-stats"><span v-if="s.power" class="skill-stat">威力{{ s.power }}</span><span v-else class="skill-stat">变化</span><span class="skill-stat" style="color:#4e9fff;">MP{{ s.mpCost }}</span><span v-if="s.accuracy<100" class="skill-stat" style="color:#ff6b35;">命中{{ s.accuracy }}</span></div>
+          <div class="skill-desc">{{ s.description }}</div>
           <div class="skill-tags"><span class="tag" :style="skillTagStyle(s)">{{ skillTypeLabel(s.type) }}</span><span class="tag field-tag" :style="skillFieldStyle(s)">{{ getField(s.field)?.emoji }}</span><span class="tag" :style="{ background:isUniqueSkill(s.id)?'#ffd70022':'#8892b022',borderColor:isUniqueSkill(s.id)?'#ffd700':'#8892b0',color:isUniqueSkill(s.id)?'#ffd700':'#8892b0',fontSize:'10px'}">{{ isUniqueSkill(s.id)?'专属':'通用' }}</span></div>
           <button class="btn btn-danger" style="position:absolute;right:4px;top:4px;padding:2px 6px;font-size:10px;width:auto;" @click.stop="doForget(s.id)">遗忘</button>
         </div>
