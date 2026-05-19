@@ -27,7 +27,8 @@ const displayFields = computed(() => {
   if (!template.value?.fields) return []
   return template.value.fields.slice(0,2).map(fid => getField(fid)).filter(Boolean)
 })
-const sprite = computed(() => getDigimonSprite(props.digimon.templateId) || displayFields.value[0]?.emoji || '❓')
+const evoName = computed(() => { const d = props.digimon; if (!d) return null; if (d.evolvedTo) { try { const evo = typeof d.evolvedTo === 'string' ? JSON.parse(d.evolvedTo) : d.evolvedTo; if (evo.name) return evo.name } catch (e) {} } const t = getTemplate(d.templateId); if (d.nickname && t && d.nickname !== t.name) return d.nickname; return null })
+const sprite = computed(() => getDigimonSprite(props.digimon.templateId, 50, evoName.value) || displayFields.value[0]?.emoji || '❓')
 const displayName = computed(() => props.digimon.nickname || template.value?.name || '???')
 const typeLabel = computed(() => template.value?.type || '?')
 const typeIcon = computed(() => typeIcons[typeLabel.value] || '')
