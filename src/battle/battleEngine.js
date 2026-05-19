@@ -1,4 +1,4 @@
-import { getTemplate, getSkill, fieldChart, typeChart, digimonTemplates, commonSkills, uniqueSkills } from '../data/digimonData.js'
+import { getTemplate, getSkill, getField, fieldChart, typeChart, digimonTemplates, commonSkills, uniqueSkills } from '../data/digimonData.js'
 import { BattleEntity } from './battleEntity.js'
 
 const STATUS_NAMES = { burn:'灼烧', paralysis:'麻痹', poison:'中毒', sleep:'睡眠', freeze:'冰冻', confusion:'混乱' }
@@ -58,8 +58,30 @@ export class BattleEngine {
   }
 
   _executeAttack(actor,skill,target) {
-    const isCrit=Math.random()<1/16; const dmg=this._calcDamage(actor,skill,target,isCrit); target.takeDamage(dmg)
-    if (isCrit) this.log('会心一击！'); this.log(`造成 ${dmg} 伤害！`)
+    const physical=skill.type==='physical'; const atk=physical?actor.getAtk():actor.getSpAtk(); const def=physical?target.getDef():target.getSpDef()
+    if (!skill.power||skill.power===0) return
+    let dmg=Math.floor(((2*actor.level+10)/250)*(atk/Math.max(1,def))*skill.power+2)
+    let hasStab=false, fieldAdv=0, typeAdv=0
+    // STAB
+    if (actor.fields.includes(skill.field)) { dmg=Math.floor(dmg*1.5); hasStab=true }
+    // 领域克制
+    const rel=fieldChart[skill.field]; if (rel) { let m=1.0; for (const df of target.fields) { if (df===rel.strong) { m*=1.5; fieldAdv++ } if (df===rel.weak) { m*=0.75; fieldAdv-- } }; if (m!==1.0) dmg=Math.floor(dmg*m) }
+    // 种族克制
+    const tr=typeChart[actor.type]; if (tr?.strong?.includes(target.type)) { dmg=Math.floor(dmg*1.5); typeAdv++ }; if (tr?.weak?.includes(target.type)) { dmg=Math.floor(dmg*0.75); typeAdv-- }
+    // 暴击
+    const isCrit=Math.random()<1/16; if (isCrit) { dmg=Math.floor(dmg*1.5); this.log('💥 会心一击！') }
+    // 随机
+    dmg=Math.floor(dmg*(0.85+Math.random()*0.15))
+    if (actor.status==='burn'&&physical) { dmg=Math.floor(dmg*0.5); this.log('🔥 灼烧状态物理伤害减半...') }
+    dmg=Math.max(1,dmg)
+    // 克制提示
+    if (hasStab) this.log('✨ 本领域加成！伤害×1.5')
+    if (fieldAdv>0) { const sn=rel?.strong; const fn=sn?getField(sn)?.name:'?'; this.log(`🔺 领域克制！对${fn}领域×1.5`) }
+    if (fieldAdv<0) { const wn=rel?.weak; const fn=wn?getField(wn)?.name:'?'; this.log(`🔻 领域不利...对${fn}领域×0.75`) }
+    if (typeAdv>0) this.log(`🔺 种族克制！${actor.type}→${target.type} ×1.5`)
+    if (typeAdv<0) this.log(`🔻 种族不利...${actor.type}→${target.type} ×0.75`)
+    target.takeDamage(dmg)
+    this.log(`造成 ${dmg} 伤害！`)
     if (skill.effects) { for (const ef of skill.effects) { if (ef.type&&ef.chance&&Math.random()*100<ef.chance&&STATUS_LIST.includes(ef.type)&&target.applyStatus(ef.type)) this.log(`${target.name} ${STATUS_NAMES[ef.type]}了！`) } }
   }
 
