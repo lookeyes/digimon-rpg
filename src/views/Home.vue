@@ -38,6 +38,10 @@
         <div class="menu-icon">📖</div>
         <div class="menu-label">图鉴</div>
       </router-link>
+      <router-link to="/about" class="menu-item">
+        <div class="menu-icon">📋</div>
+        <div class="menu-label">介绍</div>
+      </router-link>
     </div>
 
     <div style="margin-top: 20px; text-align: center;">

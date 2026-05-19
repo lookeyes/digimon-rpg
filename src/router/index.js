@@ -63,6 +63,12 @@ const routes = [
     name: 'Dex',
     component: () => import('../views/Dex.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/About.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
