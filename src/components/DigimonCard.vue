@@ -16,7 +16,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { getTemplate, getField, getNature, typeColors, typeIcons } from '../data/digimonData.js'
+import { getTemplate, getField, getNature, typeColors, typeIcons, digimonTemplates } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 
 const props = defineProps({ digimon: { type: Object, required: true } })
@@ -27,7 +27,7 @@ const displayFields = computed(() => {
   if (!template.value?.fields) return []
   return template.value.fields.slice(0,2).map(fid => getField(fid)).filter(Boolean)
 })
-const evoName = computed(() => { const d = props.digimon; if (!d) return template.value?.name||null; if (d.evolvedTo) { try { const evo = typeof d.evolvedTo === 'string' ? JSON.parse(d.evolvedTo) : d.evolvedTo; if (evo.name) return evo.name } catch (e) {} } return template.value?.name||null })
+const evoName = computed(() => { const d = props.digimon; if (!d) return template.value?.name||null; if (d.evolvedTo) { try { const evo = typeof d.evolvedTo === 'string' ? JSON.parse(d.evolvedTo) : d.evolvedTo; if (evo.name) return evo.name } catch (e) {} } if (d.nickname && digimonTemplates.some(t => t.name === d.nickname)) return d.nickname; return template.value?.name||null })
 const sprite = computed(() => getDigimonSprite(props.digimon.templateId, 50, evoName.value) || displayFields.value[0]?.emoji || '❓')
 const displayName = computed(() => props.digimon.nickname || template.value?.name || '???')
 const typeLabel = computed(() => template.value?.type || '?')

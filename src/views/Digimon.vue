@@ -15,7 +15,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getMyDigimons, getMyEggs, hatchEgg, getPlayerInfo } from '../api/game.js'
-import { getTemplate } from '../data/digimonData.js'
+import { getTemplate, digimonTemplates } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import api from '../api/bmob.js'
 import { getCurrentUser } from '../api/auth.js'
@@ -31,7 +31,7 @@ const releaseMode=ref(false),releaseIds=ref([])
 const currentIds=computed(()=>presets.value[activePreset.value]?.ids||[])
 const availableDigimons=computed(()=>digimons.value.filter(d=>!currentIds.value.includes(d.objectId)))
 
-function getEvoName(d){if(!d)return null;if(d.evolvedTo){try{const evo=typeof d.evolvedTo==='string'?JSON.parse(d.evolvedTo):d.evolvedTo;if(evo.name)return evo.name}catch(e){}};const t=getTemplate(d.templateId);return t?t.name:null}
+function getEvoName(d){if(!d)return null;if(d.evolvedTo){try{const evo=typeof d.evolvedTo==='string'?JSON.parse(d.evolvedTo):d.evolvedTo;if(evo.name)return evo.name}catch(e){}}if(d.nickname&&digimonTemplates.some(t=>t.name===d.nickname))return d.nickname;const t=getTemplate(d.templateId);return t?t.name:null}
 function getSprite(tid,d){const en=getEvoName(d);return getDigimonSprite(tid,50,en)||'❓'}
 function getTplName(tid,d){const en=getEvoName(d);if(en)return en;const t=getTemplate(tid);return t?t.name:'???'}
 function getSlotDigimon(oid){return digimons.value.find(d=>d.objectId===oid)}
