@@ -57,6 +57,12 @@ const routes = [
     name: 'Trade',
     component: () => import('../views/Trade.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/dex',
+    name: 'Dex',
+    component: () => import('../views/Dex.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
