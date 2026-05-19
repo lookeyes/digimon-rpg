@@ -8,9 +8,7 @@ export class BattleEntity {
   constructor(digimon, template, skills, isPlayer) {
     this.objectId = digimon.objectId; this.templateId = digimon.templateId; this.name = digimon.nickname || template.name
     this.level = digimon.level; this.fields = template.fields || []; this.type = template.type; this.isPlayer = isPlayer
-    this.evolvedName = null
-    if (digimon.evolvedTo) { try { this.evolvedName = typeof digimon.evolvedTo === 'string' ? JSON.parse(digimon.evolvedTo).name : digimon.evolvedTo.name } catch(e) {} }
-    if (!this.evolvedName && digimon.nickname && template && digimon.nickname !== template.name) { this.evolvedName = digimon.nickname }
+    this.evolvedName = template.name
     let talents = digimon.talents; if (typeof talents === 'string') { try { talents = JSON.parse(talents) } catch(e) { talents = [] } }
     const rawStats = this._parseStats(digimon.stats); const s = applyTalents(rawStats, talents || [], digimon.level || 1)
     this.maxHp = s.maxHp || 100; this.hp = s.hp || s.maxHp || 100; this.maxMp = s.maxMp || 50; this.mp = s.mp || s.maxMp || 50
