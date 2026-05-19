@@ -4,3 +4,6 @@ dist
 *.log
 android
 ios
+
+# Local Netlify folder
+.netlify

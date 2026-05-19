@@ -1,0 +1,154 @@
+<template>
+<div class="page">
+  <button class="back-btn" style="margin-bottom:10px;" @click="$router.back()">← 返回</button>
+  <div class="page-title"><span>交易场</span></div>
+  <div class="tabs">
+    <div class="tab" :class="{ active:tab==='market' }" @click="tab='market'">🏪 市场</div>
+    <div class="tab" :class="{ active:tab==='mine' }" @click="tab='mine'">📋 我的挂单</div>
+    <div class="tab" :class="{ active:tab==='sell' }" @click="tab='sell';loadMyItems()">💰 出售</div>
+    <div class="tab" :class="{ active:tab==='backpack' }" @click="tab='backpack';loadMyItems()">🎒 背包</div>
+  </div>
+
+  <template v-if="tab==='market'">
+    <div v-if="marketList.length===0" style="text-align:center;padding:40px 0;color:var(--text-dim);">市场暂无挂单</div>
+    <div v-else v-for="l in marketList" :key="l.objectId" class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:28px;">{{ getItemDef(l.itemId)?.icon||'📦' }}</span><div style="flex:1;"><div style="font-weight:700;">{{ getItemDef(l.itemId)?.name||l.itemId }}</div><div style="font-size:11px;color:var(--text-dim);">卖家:{{ l.sellerName||'???' }} · ×{{ l.quantity }}</div></div><div style="text-align:right;"><div style="font-weight:900;color:var(--gold);">💰 {{ l.price }}</div><button class="btn btn-primary" style="padding:4px 12px;font-size:12px;margin-top:4px;" @click="buyListing(l)" :disabled="buying">{{ buying?'...':'购买' }}</button></div></div>
+    </div>
+  </template>
+
+  <template v-if="tab==='mine'">
+    <div v-if="myListings.length===0" style="text-align:center;padding:40px 0;color:var(--text-dim);">没有挂单</div>
+    <div v-else v-for="l in myListings" :key="l.objectId" class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:28px;">{{ getItemDef(l.itemId)?.icon||'📦' }}</span><div style="flex:1;"><div style="font-weight:700;">{{ getItemDef(l.itemId)?.name||l.itemId }}</div><div style="font-size:11px;color:var(--text-dim);">×{{ l.quantity }} · 💰{{ l.price }}</div></div><button class="btn btn-danger" style="padding:4px 12px;font-size:11px;" @click="cancelListing(l)">下架</button></div>
+    </div>
+  </template>
+
+  <template v-if="tab==='sell'">
+    <div v-if="myItems.length===0" style="text-align:center;padding:40px 0;color:var(--text-dim);">没有可出售的道具</div>
+    <div v-else v-for="it in myItems" :key="it.id" class="card" style="margin-bottom:8px;" @click="selectToSell(it)">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:28px;">{{ it.def.icon }}</span><div style="flex:1;"><div style="font-weight:700;">{{ it.def.name }}</div><div style="font-size:11px;color:var(--text-dim);">拥有 ×{{ it.count }}</div></div><span style="color:var(--accent);">出售 →</span></div>
+    </div>
+  </template>
+
+  <template v-if="tab==='backpack'">
+    <div v-if="myItems.length===0" style="text-align:center;padding:40px 0;color:var(--text-dim);">背包空空</div>
+    <div v-else v-for="it in myItems" :key="it.id" class="card" style="margin-bottom:8px;" @click="useFromBackpack(it)">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:28px;">{{ it.def.icon }}</span><div style="flex:1;"><div style="font-weight:700;">{{ it.def.name }}</div><div style="font-size:11px;color:var(--text-dim);">×{{ it.count }}</div></div><span style="color:var(--green);">使用 →</span></div>
+    </div>
+  </template>
+
+  <div v-if="sellItem" class="modal-overlay" @click.self="sellItem=null">
+    <div class="card" style="max-width:280px;width:100%;text-align:center;">
+      <div style="font-size:36px;">{{ sellItem.def.icon }}</div>
+      <div style="font-weight:700;margin-bottom:4px;">{{ sellItem.def.name }}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">拥有 ×{{ sellItem.count }}</div>
+      <div class="input-group"><label>数量</label><input v-model.number="sellQty" type="number" min="1"/></div>
+      <div class="input-group"><label>单价（金币）</label><input v-model.number="sellPrice" type="number" min="1"/></div>
+      <button class="btn btn-primary" @click="createListing" :disabled="!sellQty||sellQty<=0||!sellPrice||sellPrice<=0">挂单出售</button>
+      <button class="btn btn-secondary" style="margin-top:4px;" @click="sellItem=null">取消</button>
+    </div>
+  </div>
+
+  <div v-if="useItem" class="modal-overlay" @click.self="useItem=null">
+    <div class="card" style="max-width:300px;width:100%;text-align:center;">
+      <div style="font-size:36px;">{{ useItem.def.icon }}</div><div style="font-weight:700;">{{ useItem.def.name }}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">选择使用的数码兽</div>
+      <div v-for="d in backpackDigimons" :key="d.objectId" class="backpack-item card" @click="doUseItem(useItem,d)">
+        <span style="font-size:24px;">🐉</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;">{{ d.nickname||getTplName(d.templateId) }}</div><div style="font-size:11px;color:var(--text-dim);">Lv.{{ d.level }} · HP {{ parseStat(d).hp }}/{{ parseStat(d).maxHp }}</div></div>
+      </div>
+      <button class="btn btn-secondary" style="width:auto;margin-top:8px;" @click="useItem=null">取消</button>
+    </div>
+  </div>
+</div>
+<BottomNav/>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import api from '../api/bmob.js'
+import { getCurrentUser } from '../api/auth.js'
+import { getPlayerInfo, getMyDigimons } from '../api/game.js'
+import { getTemplate } from '../data/digimonData.js'
+import BottomNav from '../components/BottomNav.vue'
+
+const tab=ref('market'),marketList=ref([]),myListings=ref([]),myItems=ref([]),buying=ref(false)
+const sellItem=ref(null),sellQty=ref(1),sellPrice=ref(100),useItem=ref(null),backpackDigimons=ref([])
+const itemDefs={heal_hp:{icon:'💚',name:'回复药剂'},heal_mp:{icon:'💎',name:'MP回复剂'},antidote:{icon:'🌿',name:'解毒草'},awakening:{icon:'💤',name:'苏醒药'},burn_heal:{icon:'🔥',name:'灼烧膏'},ice_heal:{icon:'❄️',name:'解冻剂'},para_heal:{icon:'⚡',name:'解麻药'},confuse_heal:{icon:'🌀',name:'解乱果'},full_heal:{icon:'🏥',name:'万能药'}}
+function getItemDef(id){return itemDefs[id]}
+function getTplName(tid){const t=getTemplate(tid);return t?.name||'???'}
+function parseStat(d){if(!d?.stats)return{hp:0,maxHp:1};try{return typeof d.stats==='string'?JSON.parse(d.stats):d.stats}catch(e){return{hp:0,maxHp:1}}}
+function parseItems(val){if(!val)return{};if(typeof val==='string'){try{return JSON.parse(val)}catch(e){return{}}}return val}
+
+async function loadMarket(){try{const res=await api.query('TradeListing',{status:'active'});marketList.value=res.results||[];for(const l of marketList.value){if(l.seller&&l.seller.objectId){try{const u=await api.getUser(l.seller.objectId);l.sellerName=u.username||'???'}catch(e){l.sellerName='???'}}}}catch(e){console.error(e)}
+async function loadMyListings(){
+  const u=getCurrentUser();if(!u)return
+  try{
+    const res=await api.query('TradeListing',{seller:{__type:'Pointer',className:'_User',objectId:u.objectId},status:'active'})
+    myListings.value=res.results||[]
+  }catch(e){console.error(e)}
+}
+
+async function loadMyItems(){try{const info=await getPlayerInfo();const items=parseItems(info.items);myItems.value=Object.entries(items).filter(([id,count])=>count>0&&itemDefs[id]).map(([id,count])=>({id,count,def:itemDefs[id]}))}catch(e){console.error(e)}}
+
+async function buyListing(listing){
+  if(buying.value)return;buying.value=true
+  try{
+    const u=getCurrentUser();const info=await getPlayerInfo()
+    if(info.gold<listing.price){alert('金币不足！');return}
+    await api.updateUser(u.objectId,{gold:info.gold-listing.price})
+    let bi=parseItems(info.items);bi[listing.itemId]=(bi[listing.itemId]||0)+listing.quantity
+    await api.updateUser(u.objectId,{items:JSON.stringify(bi)})
+    const seller=await api.getUser(listing.seller.objectId)
+    await api.updateUser(listing.seller.objectId,{gold:(seller.gold||0)+listing.price})
+    await api.update('TradeListing',listing.objectId,{status:'sold'})
+    alert('购买成功！');await loadMarket()
+  }catch(e){alert('购买失败: '+e.message)}finally{buying.value=false}
+}
+
+async function cancelListing(listing){
+  if(!confirm('确定下架？'))return
+  try{
+    await api.update('TradeListing',listing.objectId,{status:'cancelled'})
+    const info=await getPlayerInfo();let items=parseItems(info.items)
+    items[listing.itemId]=(items[listing.itemId]||0)+listing.quantity
+    await api.updateUser(getCurrentUser().objectId,{items:JSON.stringify(items)})
+    alert('已下架，道具已退回');await loadMyListings()
+  }catch(e){alert('下架失败: '+e.message)}
+}
+
+function selectToSell(it){sellItem.value=it;sellQty.value=1;sellPrice.value=100}
+async function createListing(){
+  if(!sellQty.value||sellQty.value<=0||!sellPrice.value||sellPrice.value<=0){alert('请输入有效数量和价格');return}
+  try{
+    const u=getCurrentUser();const info=await getPlayerInfo();let items=parseItems(info.items)
+    if((items[sellItem.value.id]||0)<sellQty.value){alert('数量不足！');return}
+    items[sellItem.value.id]-=sellQty.value;await api.updateUser(u.objectId,{items:JSON.stringify(items)})
+    await api.create('TradeListing',{seller:{__type:'Pointer',className:'_User',objectId:u.objectId},itemId:sellItem.value.id,quantity:sellQty.value,price:sellPrice.value,status:'active'})
+    alert('挂单成功！');sellItem.value=null;await loadMyListings();tab.value='mine'
+  }catch(e){alert('挂单失败: '+e.message)}
+}
+
+function useFromBackpack(it){useItem.value=it;getMyDigimons().then(d=>backpackDigimons.value=d).catch(()=>{})}
+async function doUseItem(it,d){
+  try{
+    const s=parseStat(d)
+    if(it.id==='heal_hp'){
+      await api.update('PlayerDigimon',d.objectId,{hp:s.maxHp,stats:JSON.stringify({hp:s.maxHp,maxHp:s.maxHp,mp:s.maxMp,maxMp:s.maxMp,atk:s.atk,def:s.def,spAtk:s.spAtk,spDef:s.spDef,spd:s.spd})})
+      alert('HP已回满！')
+    } else if(it.id==='heal_mp'){
+      await api.update('PlayerDigimon',d.objectId,{mp:s.maxMp,stats:JSON.stringify({hp:s.hp,maxHp:s.maxHp,mp:s.maxMp,maxMp:s.maxMp,atk:s.atk,def:s.def,spAtk:s.spAtk,spDef:s.spDef,spd:s.spd})})
+      alert('MP已回满！')
+    } else {
+      await api.update('PlayerDigimon',d.objectId,{status:null})
+      alert('状态已治愈！')
+    }
+    const info=await getPlayerInfo()
+    let items=parseItems(info.items)
+    items[it.id]=Math.max(0,(items[it.id]||0)-1)
+    await api.updateUser(getCurrentUser().objectId,{items:JSON.stringify(items)})
+    useItem.value=null
+    await loadMyItems()
+  }catch(e){alert('使用失败: '+e.message)}
+}
+onMounted(function(){loadMarket();loadMyListings()})
+</script>
