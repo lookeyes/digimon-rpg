@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(node deploy-zip.cjs)",
+      "Bash(node set-cache.cjs)",
+      "Bash(node read-nginx-conf.cjs)",
+      "Bash(node apply-cache.cjs)",
+      "Bash(curl -s -I \"http://43.135.22.190/assets/Battle-CH11KDsh.js\")",
+      "Bash(curl -s -I \"http://43.135.22.190/index.html\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(node reload-nginx.cjs)"
     ]
   }
 }

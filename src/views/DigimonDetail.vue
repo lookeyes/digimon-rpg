@@ -1,6 +1,6 @@
 <template>
 <div class="page">
-  <button class="back-btn" style="margin-bottom:10px;" @click="$router.back()">← 返回</button>
+  <button class="back-btn" @click="$router.back()">← 返回</button>
   <div v-if="loading" class="placeholder-page"><div class="icon">⏳</div><h3>加载中...</h3></div>
 
   <template v-else-if="digimon&&template">

@@ -1,5 +1,5 @@
 <template>
-  <div class="page" style="padding-bottom:80px;">
+  <div class="page">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
       <button class="back-btn" @click="$router.back()">← 返回</button>
       <div class="page-title" style="margin:0;"><span>📖</span> 数码图鉴</div>

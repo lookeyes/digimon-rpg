@@ -18,7 +18,12 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(node -e ' *)",
+      "Bash(node deploy.cjs)",
+      "Bash(git rm *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://43.135.22.190/images/%E4%BA%9A%E5%8F%A4%E5%85%BD.png\")",
+      "Bash(node upload-dist.cjs)"
     ]
   }
 }

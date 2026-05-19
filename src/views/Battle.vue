@@ -1,11 +1,11 @@
 <template>
 <div class="battle-page">
   <template v-if="phase==='mapSelect'">
-    <div class="page"><button class="back-btn" style="margin-bottom:10px;" @click="$router.back()">← 返回</button><div class="page-title"><span>选择</span>冒险地图</div>
+    <div class="page"><button class="back-btn" @click="$router.back()">← 返回</button><div class="page-title"><span>选择</span>冒险地图</div>
     <div class="map-list"><div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id"><div class="map-header"><span class="map-emoji">{{ f.emoji }}</span><div><div class="map-name">{{ f.name }}</div><div class="map-desc">{{ f.desc }}</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap===f.id?'收起':'展开' }}</span></div><div v-if="expandedMap===f.id" class="map-levels"><div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">选择等级区间：</div><div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div></div></div></div></div><BottomNav/>
   </template>
 
-  <div v-if="phase==='noTeam'" class="page" style="text-align:center;"><button class="back-btn" style="margin-bottom:10px;" @click="phase='mapSelect'">← 返回</button><div class="placeholder-page"><div class="icon">⚔️</div><h3>没有可出战的数码宝贝</h3><p>请先在数码宝贝页面编队</p><button class="btn btn-primary" style="width:auto;margin-top:12px;" @click="$router.push('/digimon')">去编队</button></div></div>
+  <div v-if="phase==='noTeam'" class="page" style="text-align:center;"><button class="back-btn" @click="phase='mapSelect'">← 返回</button><div class="placeholder-page"><div class="icon">⚔️</div><h3>没有可出战的数码宝贝</h3><p>请先在数码宝贝页面编队</p><button class="btn btn-primary" style="width:auto;margin-top:12px;" @click="$router.push('/digimon')">去编队</button></div></div>
 
   <template v-if="phase==='battle'">
     <div class="battle-top"><button class="back-btn" @click="fleeBattle">逃跑</button><span style="font-size:16px;font-weight:700;">第 {{ engine.turn }} 回合</span><div style="display:flex;gap:4px;"><button class="auto-btn" :class="{ on: engine.autoBattle }" @click="toggleAuto">{{ engine.autoBattle ? '⚡自动' : '手动' }}</button><button class="auto-btn" :class="{ on: autoContinue }" @click="autoContinue=!autoContinue;battlesFought=0" style="font-size:10px;">{{ autoContinue ? '🔄'+battlesFought+'/'+battleLimit : '连战' }}</button></div><span v-if="winStreak>1" style="font-size:12px;color:var(--gold);font-weight:700;">🔥{{ winStreak }}连胜</span></div>

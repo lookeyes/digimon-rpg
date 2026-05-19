@@ -1,5 +1,5 @@
 <template>
-<div class="page"><button class="back-btn" style="margin-bottom:10px;" @click="$router.back()">← 返回</button><div class="page-title"><span>商城</span></div>
+<div class="page"><button class="back-btn" @click="$router.back()">← 返回</button><div class="page-title"><span>商城</span></div>
 <div class="gacha-resource"><span>💰</span><span>金币 × {{ gold }}</span></div>
 <div class="tabs"><div class="tab" :class="{ active:tab==='eggs' }" @click="tab='eggs'">🥚 数码蛋</div><div class="tab" :class="{ active:tab==='items' }" @click="tab='items'">🧪 道具</div><div class="tab" :class="{ active:tab==='mypouch' }" @click="tab='mypouch'">🎒 蛋列表</div></div>
 <template v-if="tab==='eggs'"><div class="shop-grid"><div v-for="f in fields" :key="f.id" class="shop-item-card card" style="text-align:center;" :style="{ borderColor:f.color }"><div style="font-size:36px;">🥚</div><div style="font-size:13px;font-weight:700;">{{ f.emoji }} {{ f.name }}蛋</div><div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;">随机孵化{{ f.name }}领域数码兽</div><div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:8px;">💰 1,000</div><button class="btn btn-primary" @click="buyEgg(f.id)" :disabled="buying||gold<1000" style="padding:6px 14px;font-size:12px;">{{ buying?'...':gold<1000?'金币不足':'购买' }}</button></div></div></template>
