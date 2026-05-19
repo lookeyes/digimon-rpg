@@ -38,14 +38,16 @@
           <span v-for="f in (selected.fields||[])" :key="f" class="tag field-tag" :style="{ background: fieldColor(f)+'22', borderColor: fieldColor(f), color: fieldColor(f) }">{{ fieldEmoji(f) }} {{ fieldName(f) }}</span>
         </div>
         <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.5;">{{ selected.description||'暂无描述' }}</p>
-        <div v-if="selected.baseHp" class="dex-modal-stats">
-          <div class="dex-stat-row"><span>HP</span><span>{{ selected.baseHp }}</span></div>
-          <div class="dex-stat-row"><span>MP</span><span>{{ selected.baseMp }}</span></div>
-          <div class="dex-stat-row"><span>攻击</span><span>{{ selected.baseAtk }}</span></div>
-          <div class="dex-stat-row"><span>防御</span><span>{{ selected.baseDef }}</span></div>
-          <div class="dex-stat-row"><span>特攻</span><span>{{ selected.baseSpAtk }}</span></div>
-          <div class="dex-stat-row"><span>特防</span><span>{{ selected.baseSpDef }}</span></div>
-          <div class="dex-stat-row"><span>速度</span><span>{{ selected.baseSpd }}</span></div>
+        <div class="dex-modal-stats" v-if="selected.baseHp||true">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px;text-align:left;">基础能力值</div>
+          <div class="dex-stat-row"><span>HP</span><span>{{ selected.baseHp||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthHp) }})</span></span></div>
+          <div class="dex-stat-row"><span>MP</span><span>{{ selected.baseMp||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthMp) }})</span></span></div>
+          <div class="dex-stat-row"><span>攻击</span><span>{{ selected.baseAtk||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthAtk) }})</span></span></div>
+          <div class="dex-stat-row"><span>防御</span><span>{{ selected.baseDef||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthDef) }})</span></span></div>
+          <div class="dex-stat-row"><span>特攻</span><span>{{ selected.baseSpAtk||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpAtk) }})</span></span></div>
+          <div class="dex-stat-row"><span>特防</span><span>{{ selected.baseSpDef||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpDef) }})</span></span></div>
+          <div class="dex-stat-row"><span>速度</span><span>{{ selected.baseSpd||0 }} <span style="font-size:10px;color:var(--text-dim);">({{ growthLabel(selected.growthSpd) }})</span></span></div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">* 进化形态显示成长期基础值，实际能力按阶段倍率提升</div>
         </div>
         <div v-if="selected.abilities" style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">
           <span v-for="a in selected.abilities" :key="a" class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);margin:2px;">⚡{{ abilityName(a) }}</span>
@@ -108,23 +110,53 @@ function buildAllDigimon() {
   return all
 }
 
-function buildEntry(name, stage, flds, next) {
-  // Try to find a template for this name
+function buildEntry(name, stage, flds, parentTargets) {
   const tpl = digimonTemplates.find(t => t.name === name)
   if (tpl) return { ...tpl, _id: tpl.id }
-  // Lookup from evoChains values for type/fields
+  const base = findBase(name)
+  // Try to find this form as a value in evoChains (it's someone's target)
   for (const [, targets] of Object.entries(evoChains)) {
     const found = targets.find(t => t.name === name)
-    if (found) {
-      return {
-        _id: name, name, stage: stage||found.stage,
-        fields: flds||found.fields||[], type: found.type||'自由',
-        description: '', baseHp:0, baseMp:0, baseAtk:0, baseDef:0, baseSpAtk:0, baseSpDef:0, baseSpd:0,
-        abilities: []
+    if (found) { return makeDexEntry(name, stage||found.stage, flds||found.fields, found.type, base) }
+  }
+  // Try to find as a key in evoChains with info from its own targets
+  if (parentTargets && parentTargets.length>0) {
+    const self = parentTargets[0]
+    return makeDexEntry(name, stage||(self.stage==='完全体'?'成熟期':'完全体'), flds||self.fields, self.type, base)
+  }
+  // Fallback: look up from parent evoChains keys
+  for (const [from, targets] of Object.entries(evoChains)) {
+    if (from === name) { return makeDexEntry(name, stage||(targets[0].stage==='完全体'?'成熟期':'完全体'), flds||targets[0].fields, targets[0].type, base) }
+  }
+  return makeDexEntry(name, stage||'自由', flds||[], '自由', base)
+}
+
+function makeDexEntry(name, stage, fields, type, base) {
+  return {
+    _id: name, name, stage, fields: fields||[], type: type||'自由',
+    description: base?.description||'', baseHp:base?.baseHp||0, baseMp:base?.baseMp||0, baseAtk:base?.baseAtk||0, baseDef:base?.baseDef||0, baseSpAtk:base?.baseSpAtk||0, baseSpDef:base?.baseSpDef||0, baseSpd:base?.baseSpd||0,
+    growthHp:base?.growthHp||'', growthMp:base?.growthMp||'', growthAtk:base?.growthAtk||'', growthDef:base?.growthDef||'', growthSpAtk:base?.growthSpAtk||'', growthSpDef:base?.growthSpDef||'', growthSpd:base?.growthSpd||'',
+    abilities: base?.abilities||[]
+  }
+}
+
+function findBase(name) {
+  let current = name
+  for (let i=0;i<5;i++) {
+    let found=false
+    const tpl = digimonTemplates.find(t => t.name === current)
+    if (tpl) return tpl
+    for (const t of digimonTemplates) {
+      if (t.evolutionTree?.some(e => e.name === current)) { current = t.name; found=true; break }
+    }
+    if (!found) {
+      for (const [from, targets] of Object.entries(evoChains)) {
+        if (targets.some(t => t.name === current)) { current = from; found=true; break }
       }
     }
+    if (!found) break
   }
-  return { _id:name, name, stage:stage||'自由', fields:flds||[], type:'自由', description:'', baseHp:0,baseMp:0,baseAtk:0,baseDef:0,baseSpAtk:0,baseSpDef:0,baseSpd:0,abilities:[] }
+  return null
 }
 
 const allDigimon = buildAllDigimon()
@@ -144,6 +176,7 @@ function spriteFor(d, size=80) {
   return getDigimonSprite(d._id||d.name, size, d.name) || '❓'
 }
 
+function growthLabel(g) { const m={S:'S',A:'A',B:'B',C:'C',D:'D'};return m[g]||'' }
 function typeColor(t) { return typeColors[t]||'#888' }
 function fieldColor(f) { const fd = fields.find(x=>x.id===f); return fd?.color||'#888' }
 function fieldEmoji(f) { const fd = fields.find(x=>x.id===f); return fd?.emoji||'?' }
