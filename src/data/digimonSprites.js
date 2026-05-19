@@ -6,9 +6,9 @@ export function getSpriteHtml(name, size = 80) {
   const cnName = nameMap[name] || name
   const svg = digimonSprites[name] || digimonSprites[cnName] || ''
   let handler = `this.style.display='none';this.nextElementSibling.style.display='block'`
-  const exts = ['png','jpg','jpeg','webp']
+  const exts = ['jpg','jpeg','webp']
   for (let i = exts.length - 1; i >= 0; i--) { handler = `this.src='/images/${cnName}.${exts[i]}';this.onerror=function(){${handler}}` }
-  return `<img src="/images/${cnName}.gif" width="${size}" height="${size}" onerror="${handler}" style="display:inline-block"/><span style="display:none">${svg}</span>`
+  return `<img src="/images/${cnName}.png" width="${size}" height="${size}" onerror="${handler}" style="display:inline-block"/><span style="display:none">${svg}</span>`
 }
 
 export function getDigimonSprite(idOrName, size = 80, evoName) {
