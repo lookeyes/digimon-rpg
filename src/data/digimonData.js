@@ -59,26 +59,26 @@ export function getNature(id) { return natures.find(n => n.id === id) }
 export function randomNature() { return natures[Math.floor(Math.random() * natures.length)] }
 
 export const abilities = {
-  dragon_will:{ id:'dragon_will', name:'龙之斗志', desc:'HP低于50%时，攻击力提升20%' },
-  flame_power:{ id:'flame_power', name:'火焰之力', desc:'龙之咆哮领域技能伤害+15%' },
-  fur_armor:{ id:'fur_armor', name:'毛皮护甲', desc:'受到物理攻击时20%几率减30%伤害' },
-  frost_breath:{ id:'frost_breath', name:'极寒吐息', desc:'出场时敌方全体速度降低10%' },
-  gale_wings:{ id:'gale_wings', name:'疾风之翼', desc:'速度不会被降低' },
-  blaze_feather:{ id:'blaze_feather', name:'烈焰羽毛', desc:'攻击时10%几率附加灼烧' },
-  hard_shell:{ id:'hard_shell', name:'坚硬甲壳', desc:'受到克制伤害时减少25%' },
-  static_discharge:{ id:'static_discharge', name:'静电放电', desc:'受到物理攻击30%几率麻痹对手' },
-  ocean_power:{ id:'ocean_power', name:'海洋之力', desc:'每回合结束时恢复5%最大HP' },
-  fish_guard:{ id:'fish_guard', name:'鱼群守护', desc:'受到多段攻击后续伤害-20%' },
-  holy_blessing:{ id:'holy_blessing', name:'神圣加护', desc:'免疫一击必杀效果' },
-  light_of_hope:{ id:'light_of_hope', name:'希望之光', desc:'击败敌方后回复15%最大HP' },
-  saint_scent:{ id:'saint_scent', name:'圣兽嗅觉', desc:'出场时探查敌方持有物' },
-  first_strike_heart:{ id:'first_strike_heart', name:'先制之心', desc:'HP低于25%时速度提升50%' },
-  dragon_pressure:{ id:'dragon_pressure', name:'龙之威压', desc:'出场时降低敌方全体攻击10%' },
-  berserker:{ id:'berserker', name:'狂战士', desc:'受击后攻击+10%，最多叠3层' },
-  prankster:{ id:'prankster', name:'恶作剧之心', desc:'变化技能优先度+1' },
-  shadow_walk:{ id:'shadow_walk', name:'暗夜潜行', desc:'被攻击时15%几率闪避' },
-  natural_harmony:{ id:'natural_harmony', name:'自然调和', desc:'每回合结束解除一项异常状态' },
-  seedling_regen:{ id:'seedling_regen', name:'幼苗再生', desc:'有异常状态时每回合回复10%HP' }
+  dragon_will:{ id:'dragon_will', name:'龙之斗志', desc:'体内流淌的龙族之血在危机时刻沸腾。HP低于一半时，攻击力大幅提升20%，越战越勇。' },
+  flame_power:{ id:'flame_power', name:'火焰之力', desc:'与生俱来的火焰亲和性，释放龙之咆哮领域的技能时威力增强15%，烈焰焚烧一切敌人。' },
+  fur_armor:{ id:'fur_armor', name:'毛皮护甲', desc:'覆盖全身的厚实毛皮如同天然铠甲，受到物理攻击时有20%几率抵消30%的伤害。' },
+  frost_breath:{ id:'frost_breath', name:'极寒吐息', desc:'体内蕴含的极寒之力在登场时扩散全场，降低敌方全体速度10%，抢占先机。' },
+  gale_wings:{ id:'gale_wings', name:'疾风之翼', desc:'驾驭风之力的双翼不受任何束缚，速度永远不会被对手降低，始终保持巅峰机动性。' },
+  blaze_feather:{ id:'blaze_feather', name:'烈焰羽毛', desc:'羽翼中潜藏着灼热的火焰能量，每次攻击有10%几率灼烧对手，造成持续伤害。' },
+  hard_shell:{ id:'hard_shell', name:'坚硬甲壳', desc:'经过千锤百炼的甲壳坚不可摧，受到属性克制的伤害时减少25%，弱点也不再致命。' },
+  static_discharge:{ id:'static_discharge', name:'静电放电', desc:'甲壳表面蓄积着高压静电，受到近距离物理攻击时有30%几率反噬对手使其麻痹。' },
+  ocean_power:{ id:'ocean_power', name:'海洋之力', desc:'与大海的共鸣带来无尽的生命力，每回合结束时自动恢复5%最大HP，续航能力极强。' },
+  fish_guard:{ id:'fish_guard', name:'鱼群守护', desc:'呼唤鱼群在身旁形成防护屏障，受到多段攻击时，从第二击开始伤害降低20%。' },
+  holy_blessing:{ id:'holy_blessing', name:'神圣加护', desc:'被神圣力量庇护的天使，免疫任何一击必杀类的致命攻击，不会被秒杀。' },
+  light_of_hope:{ id:'light_of_hope', name:'希望之光', desc:'击败敌人时希望之光闪耀全身，回复最大HP的15%，在连续战斗中保持持久战力。' },
+  saint_scent:{ id:'saint_scent', name:'圣兽嗅觉', desc:'敏锐的圣兽直觉能在登场瞬间洞察对手携带的道具，知己知彼百战不殆。' },
+  first_strike_heart:{ id:'first_strike_heart', name:'先制之心', desc:'越是危急时刻反应越是敏捷。HP低于25%时速度激增50%，绝境中逆转战局的关键。' },
+  dragon_pressure:{ id:'dragon_pressure', name:'龙之威压', desc:'龙族王者的压迫感令人窒息。登场时威压笼罩全场，降低敌方全体攻击力10%。' },
+  berserker:{ id:'berserker', name:'狂战士', desc:'越是受伤战意越是高昂。每次受到攻击后攻击力提升10%，最多叠加3层，如同暴走的战斗机器。' },
+  prankster:{ id:'prankster', name:'恶作剧之心', desc:'天性狡猾擅长先发制人，所有变化类技能的优先度+1，总是能抢先干扰对手。' },
+  shadow_walk:{ id:'shadow_walk', name:'暗夜潜行', desc:'在阴影中穿梭的身法令人捉摸不定，被攻击时有15%几率完全闪避，毫发无伤。' },
+  natural_harmony:{ id:'natural_harmony', name:'自然调和', desc:'与大自然的和谐共鸣能净化一切负面状态，每回合结束时自动解除身上一项异常状态。' },
+  seedling_regen:{ id:'seedling_regen', name:'幼苗再生', desc:'即使身负异常状态，生命之芽仍顽强生长，陷入异常时每回合回复10%最大HP，逆境中屹立不倒。' }
 }
 export function getAbility(id) { return abilities[id] || null }
 
