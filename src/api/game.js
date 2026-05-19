@@ -97,7 +97,7 @@ export async function evolveDigimon(digimonId, evolutionIndex) {
   let newTplId, stats, evolvedTo
   if (newTpl) { newTplId = newTpl.id; stats = calcStats(newTpl, digimon.level, allocated, digimon.nature); evolvedTo = null }
   else { newTplId = digimon.templateId; const stageMult = { '成熟期':1.3, '完全体':1.6, '究极体':2.0 }; const mult = stageMult[target.stage]||1.3; stats = calcStats(tpl, digimon.level, allocated, digimon.nature); stats = { hp:Math.floor(stats.maxHp*mult), maxHp:Math.floor(stats.maxHp*mult), mp:Math.floor(stats.maxMp*1.1), maxMp:Math.floor(stats.maxMp*1.1), atk:Math.floor(stats.atk*mult), def:Math.floor(stats.def*mult), spAtk:Math.floor(stats.spAtk*mult), spDef:Math.floor(stats.spDef*mult), spd:Math.floor(stats.spd*1.1) }; evolvedTo = { name:target.name, stage:target.stage, fields:target.fields, type:target.type } }
-  let learned = parseArray(digimon.learnedSkills); for (const s of getUniqueSkillsForDigimon(newTplId, digimon.level)) { if (!learned.includes(s.id)) learned.push(s.id) }
+  let learned = parseArray(digimon.learnedSkills); for (const s of getUniqueSkillsForDigimon(newTplId, digimon.level, target.name)) { if (!learned.includes(s.id)) learned.push(s.id) }
   const updateData = { templateId:newTplId, nickname:target.name, learnedSkills:JSON.stringify(learned), stats:JSON.stringify(stats), hp:stats.maxHp||stats.hp }; if (evolvedTo) updateData.evolvedTo = JSON.stringify(evolvedTo)
   await api.update('PlayerDigimon', digimonId, updateData); return true
 }

@@ -12,7 +12,7 @@ async function processDigimon(digimon, entity, expGain, fieldExpReward, isTeamMe
   let learned = []; try { learned = typeof digimon.learnedSkills === 'string' ? JSON.parse(digimon.learnedSkills) : (digimon.learnedSkills || []) } catch(e) {}
   while (remainingExp >= newLevel * 10 && newLevel < 100) {
     remainingExp -= newLevel * 10; newLevel++; newFreePoints += 5
-    const uniqueNew = getUniqueSkillsForDigimon(digimon.templateId, newLevel)
+    const displayName = digimon.nickname || (getTemplate(digimon.templateId)?.name || null); const uniqueNew = getUniqueSkillsForDigimon(digimon.templateId, newLevel, displayName)
     for (const s of uniqueNew) { if (!learned.includes(s.id) && learned.length < 10) { learned.push(s.id); newSkillsLearned.push(s) } }
     if (newLevel % 5 === 0) {
       const { getRandomCommonSkills } = await import('../data/digimonData.js')
