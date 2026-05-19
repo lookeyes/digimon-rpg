@@ -56,8 +56,8 @@ const categories = [
 
 const allItems = [
   // 战斗道具 (battle)
-  { id: 'heal_hp', name: '回复药剂', icon: '💚', desc: '战斗中恢复一只数码兽全部HP', price: 200, battleUse: true, bind: false, category: 'battle' },
-  { id: 'heal_mp', name: 'MP回复剂', icon: '💎', desc: '战斗中恢复一只数码兽全部MP', price: 200, battleUse: true, bind: false, category: 'battle' },
+  { id: 'heal_hp', name: '回复药剂', icon: '💚', desc: '战斗中回复一只数码兽40%最大HP', price: 200, battleUse: true, bind: false, category: 'battle' },
+  { id: 'heal_mp', name: 'MP回复剂', icon: '💎', desc: '战斗中回复一只数码兽35%最大MP', price: 200, battleUse: true, bind: false, category: 'battle' },
   { id: 'antidote', name: '解毒草', icon: '🌿', desc: '治愈中毒状态', price: 100, battleUse: true, bind: false, category: 'battle' },
   { id: 'awakening', name: '苏醒药', icon: '💤', desc: '治愈睡眠状态', price: 150, battleUse: true, bind: false, category: 'battle' },
   { id: 'burn_heal', name: '灼烧膏', icon: '🔥', desc: '治愈灼烧状态', price: 100, battleUse: true, bind: false, category: 'battle' },
@@ -65,8 +65,8 @@ const allItems = [
   { id: 'para_heal', name: '解麻药', icon: '⚡', desc: '治愈麻痹状态', price: 100, battleUse: true, bind: false, category: 'battle' },
   { id: 'confuse_heal', name: '解乱果', icon: '🌀', desc: '治愈混乱状态', price: 100, battleUse: true, bind: false, category: 'battle' },
   { id: 'full_heal', name: '万能药', icon: '🏥', desc: '治愈全部异常状态', price: 500, battleUse: true, bind: false, category: 'battle' },
-  { id: 'revive', name: '复活药', icon: '✨', desc: '战斗中复活一只数码兽并回复50%HP', price: 800, battleUse: true, bind: false, category: 'battle' },
-  { id: 'elixir', name: '圣灵药', icon: '🍀', desc: '战斗中回复一只数码兽全部HP和MP', price: 500, battleUse: true, bind: false, category: 'battle' },
+  { id: 'revive', name: '复活药', icon: '✨', desc: '战斗中复活一只数码兽并回复30%HP和20%MP', price: 800, battleUse: true, bind: false, category: 'battle' },
+  { id: 'elixir', name: '圣灵药', icon: '🍀', desc: '战斗中回复一只数码兽25%HP和25%MP', price: 500, battleUse: true, bind: false, category: 'battle' },
 
   // 绑定物品 (bind)
   { id: 'free_reset', name: '洗点券', icon: '🔁', desc: '重置一只数码兽已分配的自由点', price: 0, battleUse: false, bind: true, category: 'bind' },
