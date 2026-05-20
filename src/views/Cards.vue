@@ -4,11 +4,14 @@
     <div class="page-title">🃏 卡牌收藏</div>
 
     <div class="about-section">
-      <div class="about-section-title">📊 卡牌加成（每张+1%，不同卡累加）</div>
+      <div class="about-section-title">📊 当前加成总览</div>
       <div class="dex-modal-stats">
-        <div class="dex-stat-row"><span>已收集种类</span><span style="font-weight:700;color:var(--accent);">{{ ownedCards }}/50</span></div>
+        <div class="dex-stat-row"><span>已收集种类</span><span style="font-weight:700;color:var(--accent);">{{ ownedCards }}/50 · 总计{{ totalCards }}张</span></div>
         <div class="dex-stat-row" v-for="(v,k) in currentBonus" :key="k"><span>{{ statName(k) }}</span><span style="color:var(--green);">+{{ v }}%</span></div>
-        <div v-if="ownedCards===0" style="font-size:11px;color:var(--text-dim);text-align:center;">收集任意数码兽卡牌即可获得对应属性加成</div>
+        <div v-if="ownedCards===0" style="font-size:11px;color:var(--text-dim);text-align:center;">收集任意数码兽卡牌即可获得属性加成</div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;">
+        <span v-for="m in cardMilestones" :key="m.count" class="tag" style="font-size:10px;background:var(--bg-primary);color:var(--text-dim);">{{ m.label }}→+{{ m.pct }}%</span>
       </div>
     </div>
 
@@ -19,7 +22,8 @@
           <div class="card-img" v-html="card.sprite"></div>
           <div class="card-info">
             <div class="card-name-text">{{ card.name }}</div>
-            <div class="card-stage-text">{{ card.stage }} · {{ statName(cardBonusMap[card.id]) }}+1%</div>
+            <div class="card-stage-text">{{ card.stage }} · {{ statName(cardBonusMap[card.id]) }}+{{ getCardPct(card.count) }}%</div>
+          <div class="card-tier">{{ cardTier(card.count) }}</div>
           </div>
           <div class="card-count" :class="{ has: card.count>0 }">×{{ card.count }}</div>
         </div>
@@ -33,7 +37,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getPlayerInfo } from '../api/game.js'
-import { digimonTemplates, cardMilestones, getCardBonus } from '../data/digimonData.js'
+import { digimonTemplates, cardMilestones, getCardBonus, getCardPct } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import BottomNav from '../components/BottomNav.vue'
 
@@ -56,6 +60,7 @@ const cardBonusMap = computed(() => {
 const currentBonus = computed(() => getCardBonus(playerCards.value))
 
 function statName(s) { return {hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度'}[s]||s }
+function cardTier(count) { const ms = cardMilestones.filter(m => count >= m.count); return ms.length > 0 ? ms[ms.length-1].label : '' }
 
 onMounted(async () => {
   try {
@@ -79,4 +84,5 @@ onMounted(async () => {
 .card-stage-text { font-size:9px; color:var(--text-dim); }
 .card-count { font-size:14px; font-weight:900; color:var(--text-dim); }
 .card-count.has { color:var(--accent); }
+.card-tier { font-size:8px; color:var(--gold); margin-top:1px; }
 </style>
