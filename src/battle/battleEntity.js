@@ -15,11 +15,11 @@ export class BattleEntity {
     this.atk = s.atk || 20; this.def = s.def || 15; this.spAtk = s.spAtk || 20; this.spDef = s.spDef || 15; this.spd = s.spd || 18
     // 卡牌全局加成
     if (isPlayer && cardBonus) {
-      const bn = cardBonus; const pct = (v,k) => bn[k] ? v * (1 + bn[k]/100) : v
-      this.maxHp = Math.floor(pct(this.maxHp,'hp')); this.hp = Math.floor(pct(this.hp,'hp'))
-      this.atk = Math.floor(pct(this.atk,'atk')); this.def = Math.floor(pct(this.def,'def'))
-      this.spAtk = Math.floor(pct(this.spAtk,'spAtk')); this.spDef = Math.floor(pct(this.spDef,'spDef'))
-      this.spd = Math.floor(pct(this.spd,'spd'))
+      const bn = cardBonus; const pct = (v,k) => bn[k] ? Math.round(v * (1 + bn[k]/100)) : v
+      this.maxHp = pct(this.maxHp,'hp'); this.hp = pct(this.hp,'hp')
+      this.atk = pct(this.atk,'atk'); this.def = pct(this.def,'def')
+      this.spAtk = pct(this.spAtk,'spAtk'); this.spDef = pct(this.spDef,'spDef')
+      this.spd = pct(this.spd,'spd')
     }
     this.baseAtk = this.atk; this.baseDef = this.def; this.baseSpAtk = this.spAtk; this.baseSpDef = this.spDef; this.baseSpd = this.spd; this.baseAccuracy = 100
     this.stages = { atk:0, def:0, spAtk:0, spDef:0, spd:0, accuracy:0 }; this.status = null; this.statusTurns = 0; this.confusionTurns = 0
