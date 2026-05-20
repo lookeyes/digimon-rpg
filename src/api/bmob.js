@@ -53,8 +53,8 @@ export default {
     return request('GET', `/users/${objectId}`, null, getToken())
   },
 
-  updateUser(objectId, data) {
-    return request('PUT', `/users/${objectId}`, data, getToken(), true)
+  updateUser(objectId, data, useMaster) {
+    return request('PUT', `/users/${objectId}`, data, useMaster ? null : getToken(), useMaster!==false)
   },
 
   query(className, where) {
@@ -62,15 +62,22 @@ export default {
     return request('GET', `/classes/${className}${whereStr}`, null, getToken())
   },
 
+  queryAll(className, where, useMaster) {
+    const whereStr = where ? `?where=${encodeURIComponent(JSON.stringify(where))}` : ''
+    const limit = 'limit=1000'
+    const sep = whereStr ? '&' : '?'
+    return request('GET', `/classes/${className}${whereStr}${sep}${limit}`, null, useMaster ? null : getToken(), useMaster)
+  },
+
   create(className, data) {
     return request('POST', `/classes/${className}`, data, getToken())
   },
 
-  update(className, objectId, data) {
-    return request('PUT', `/classes/${className}/${objectId}`, data, getToken())
+  update(className, objectId, data, sessionToken, useMaster) {
+    return request('PUT', `/classes/${className}/${objectId}`, data, useMaster ? null : (sessionToken||getToken()), useMaster)
   },
 
-  delete(className, objectId) {
-    return request('DELETE', `/classes/${className}/${objectId}`, null, getToken())
+  delete(className, objectId, useMaster) {
+    return request('DELETE', `/classes/${className}/${objectId}`, null, useMaster ? null : getToken(), useMaster)
   }
 }
