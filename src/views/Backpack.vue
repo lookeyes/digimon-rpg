@@ -100,7 +100,7 @@ const allItems = [
   { id: 'free_reset', name: '洗点券', icon: '🔁', desc: '重置一只数码兽已分配的自由点', price: 0, battleUse: false, bind: true, category: 'bind' },
   { id: 'nature_mint', name: '性格薄荷', icon: '🌿', desc: '随机改变一只数码兽的性格', price: 0, battleUse: false, bind: true, category: 'bind' },
   { id: 'evo_stone', name: '进化石', icon: '💠', desc: '帮助符合条件的数码兽突破进化', price: 0, battleUse: false, bind: true, category: 'bind' },
-  { id: 'name_tag', name: '改名卡', icon: '🏷️', desc: '为一只数码兽重新起名', price: 0, battleUse: false, bind: true, category: 'bind' },
+  { id: 'name_tag', name: '改名卡', icon: '🏷️', desc: '为一只数码兽重新起名', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
 
   // 可交易物品 (trade)
   { id: 'dragon_scale', name: '龙之鳞片', icon: '🐉', desc: '龙之咆哮领域数码兽掉落的稀有鳞片，可用于交易', price: 0, battleUse: false, bind: false, category: 'trade' },
@@ -141,12 +141,15 @@ function getCategoryCount(cat) {
 }
 
 async function useItem(item) {
+  const all = await getMyDigimons()
   if (item.id === 'skill_scroll') {
-    const all = await getMyDigimons()
     digimonList.value = all.filter(d => (parseArray(d.learnedSkills)).length < 10)
     if (digimonList.value.length === 0) { alert('所有数码兽技能已满'); return }
-    usingItem.value = item; showUseModal.value = true
+  } else if (item.id === 'name_tag') {
+    digimonList.value = all
+    if (digimonList.value.length === 0) { alert('没有数码兽'); return }
   }
+  usingItem.value = item; showUseModal.value = true
 }
 
 function parseArray(v) { if (!v) return []; if (typeof v === 'string') { try { return JSON.parse(v) } catch(e) { return [] } } return v }
@@ -168,10 +171,22 @@ async function applyItem(digimon) {
     learned.push(skill.id)
     await api.update('PlayerDigimon', digimon.objectId, { learnedSkills: JSON.stringify(learned) })
     playerItems.value['skill_scroll'] = Math.max(0, (playerItems.value['skill_scroll']||0)-1)
-    const user = getCurrentUser(); if (user) await api.updateUser(user.objectId, { items: JSON.stringify(playerItems.value) })
+    await saveItems()
     showUseModal.value = false
     alert(`${digimon.nickname||getTplName(digimon.templateId)} 学会了 ${skill.name}！`)
+  } else if (usingItem.value?.id === 'name_tag') {
+    const name = prompt('请输入新名字：', digimon.nickname || getTplName(digimon.templateId))
+    if (!name || name.trim() === '') return
+    await api.update('PlayerDigimon', digimon.objectId, { nickname: name.trim() })
+    playerItems.value['name_tag'] = Math.max(0, (playerItems.value['name_tag']||0)-1)
+    await saveItems()
+    showUseModal.value = false
+    alert('改名成功！')
   }
+}
+
+async function saveItems() {
+  const user = getCurrentUser(); if (user) await api.updateUser(user.objectId, { items: JSON.stringify(playerItems.value) })
 }
 
 onMounted(async () => {
