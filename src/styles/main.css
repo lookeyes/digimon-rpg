@@ -1173,6 +1173,15 @@ body {
 .map-card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.3);}
 .special-map{border-color:#b44dff!important;border-left-width:4px!important;background:linear-gradient(135deg,var(--bg-card),rgba(180,77,255,0.05));}
 .special-map:hover{border-color:#c77dff!important;}
+
+.map-tabs{display:flex;gap:10px;margin-bottom:14px;}
+.map-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.2s;}
+.map-tab:hover{border-color:var(--accent);color:var(--text);}
+.map-tab.active{background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(0,119,182,0.1));border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px var(--accent-glow);}
+.map-tab.special-tab.active{background:linear-gradient(135deg,rgba(180,77,255,0.15),rgba(100,0,200,0.1));border-color:#b44dff;color:#b44dff;box-shadow:0 0 16px rgba(180,77,255,0.3);}
+.map-tab.special-tab:hover{border-color:#b44dff;}
+.map-tab-icon{font-size:22px;}
+.map-tab-sub{font-size:9px;opacity:0.6;display:block;}
 .team-slots{display:flex;gap:8px;}
 .team-slot{flex:1;min-height:100px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;position:relative;cursor:pointer;transition:all 0.2s;background:var(--bg-card);}
 .team-slot:not(.empty){border-style:solid;border-color:var(--accent);box-shadow:0 0 6px var(--accent-glow);}

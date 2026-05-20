@@ -5,9 +5,13 @@
       <button class="back-btn" @click="$router.back()">← 返回</button>
       <div class="page-title">⚔️ 冒险地图</div>
       <div style="font-size:12px;color:var(--text-dim);text-align:center;margin-bottom:14px;">编队最高 Lv.{{ playerMaxLv }} · 选择地图开始战斗</div>
-      <div class="bp-tabs" style="margin-bottom:14px;">
-        <button class="bp-tab" :class="{ active: mapTab==='normal' }" @click="mapTab='normal'">🌍 普通地图</button>
-        <button class="bp-tab" :class="{ active: mapTab==='special' }" @click="mapTab='special'">☠️ 特殊地图</button>
+      <div class="map-tabs">
+        <button class="map-tab" :class="{ active: mapTab==='normal' }" @click="mapTab='normal'">
+          <span class="map-tab-icon">🌍</span><span>普通地图</span><span class="map-tab-sub">10领域</span>
+        </button>
+        <button class="map-tab special-tab" :class="{ active: mapTab==='special' }" @click="mapTab='special'">
+          <span class="map-tab-icon">☠️</span><span>特殊地图</span><span class="map-tab-sub">X病毒</span>
+        </button>
       </div>
       <!-- 普通地图 -->
       <div class="map-list" v-if="mapTab==='normal'">
