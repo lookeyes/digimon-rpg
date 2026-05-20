@@ -1,6 +1,6 @@
 import api from '../api/bmob.js'
 import { getCurrentUser } from '../api/auth.js'
-import { getTemplate, getUniqueSkillsForDigimon, getExpMultiplier, getGoldMultiplier } from '../data/digimonData.js'
+import { getTemplate, getUniqueSkillsForDigimon, getExpMultiplier, getGoldMultiplier, rollDrops } from '../data/digimonData.js'
 
 function userId() { const user = getCurrentUser(); return user ? user.objectId : null }
 
@@ -34,6 +34,20 @@ export async function saveBattleResults(playerTeam, enemyTeam, rewards) {
   for (const digimon of allDigimons) {
     try { const entity = playerTeam.find(e => e.objectId === digimon.objectId); const isTeamMember = !!entity; if (!isTeamMember) continue; const expGain = rewards.expPer; const result = await processDigimon(digimon, entity, expGain, rewards.fieldExp, true); results.push(result) } catch(e) { console.error(e) }
   }
+  // Roll drops
+  let drops = []
+  try {
+    drops = rollDrops(enemyTeam)
+    if (drops.length > 0) {
+      const user = await api.getUser(userId())
+      let items = {}
+      try { items = typeof user.items === 'string' ? JSON.parse(user.items) : (user.items || {}) } catch(e) {}
+      for (const d of drops) { items[d.id] = (items[d.id] || 0) + d.count }
+      await api.updateUser(userId(), { items: JSON.stringify(items) })
+    }
+  } catch(e) { console.error('更新掉落失败:', e) }
+  // Update gold
   try { let goldMult = 1.0; for (const digimon of allDigimons) { let t = digimon.talents; if (typeof t === 'string') try { t = JSON.parse(t) } catch(e) { t = [] }; goldMult = Math.max(goldMult, getGoldMultiplier(t||[], digimon.level||1)) }; const user = await api.getUser(userId()); await api.updateUser(userId(), { gold: (user.gold||0) + Math.floor(rewards.gold*goldMult) }) } catch(e) { console.error('更新金币失败:', e) }
+  results._drops = drops
   return results
 }

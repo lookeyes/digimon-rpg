@@ -346,3 +346,38 @@ export function canEvolve(digimon, targetEvolution) {
   for (const [fieldId, required] of Object.entries(targetEvolution.fieldExpRequired)) { if ((exp[fieldId] || 0) < required) return false }
   return true
 }
+
+// 领域掉落表
+export const fieldDropTable = {
+  dragons_roar:{item:'dragon_scale',name:'龙之鳞片',icon:'🐉',rate:0.3},
+  virus_busters:{item:'holy_feather',name:'神圣羽毛',icon:'🪶',rate:0.3},
+  dark_area:{item:'dark_crystal',name:'暗之结晶',icon:'💎',rate:0.3},
+  nature_spirits:{item:'nature_orb',name:'自然宝珠',icon:'🔮',rate:0.3},
+  metal_empire:{item:'metal_fragment',name:'金属碎片',icon:'⚙️',rate:0.3},
+  deep_savers:{item:'ocean_pearl',name:'深海珍珠',icon:'🦪',rate:0.3},
+  wind_guardians:{item:'wind_essence',name:'风之精华',icon:'💨',rate:0.3},
+  jungle_troopers:{item:'jungle_seed',name:'丛林种子',icon:'🌱',rate:0.3},
+  nightmare_soldiers:{item:'nightmare_core',name:'噩梦核心',icon:'👁️',rate:0.3},
+  unknown:{item:'virus_antibody',name:'病毒抗体',icon:'💉',rate:0.25}
+}
+
+export function rollDrops(enemyTeam) {
+  const drops = []
+  for (const enemy of enemyTeam) {
+    for (const fid of (enemy.fields||[])) {
+      const cfg = fieldDropTable[fid]
+      if (cfg && Math.random() < cfg.rate) {
+        const existing = drops.find(d => d.id === cfg.item)
+        if (existing) existing.count++
+        else drops.push({id:cfg.item,name:cfg.name,icon:cfg.icon,count:1})
+      }
+    }
+  }
+  // Bonus: skill scroll chance
+  if (Math.random() < 0.08) {
+    const existing = drops.find(d => d.id === 'skill_scroll')
+    if (existing) existing.count++
+    else drops.push({id:'skill_scroll',name:'技能卷轴',icon:'📜',count:1})
+  }
+  return drops
+}
