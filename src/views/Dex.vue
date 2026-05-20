@@ -56,6 +56,24 @@
             <span style="font-size:11px;color:var(--text-dim);line-height:1.4;">{{ a.desc }}</span>
           </div>
         </div>
+        <div v-if="uniqueSkillList.length>0" style="margin-top:12px;text-align:left;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⭐ 专属技能</div>
+          <div v-for="s in uniqueSkillList" :key="s.id" class="dex-skill-item">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-size:13px;font-weight:700;">{{ s.name }}</span>
+              <span class="tag" :style="s.type==='physical'?'background:#ff6b3522;border:1px solid #ff6b35;color:#ff6b35':s.type==='special'?'background:#4e9fff22;border:1px solid #4e9fff;color:#4e9fff':'background:#4ecca322;border:1px solid #4ecca3;color:#4ecca3'" style="font-size:9px;">{{ s.type==='physical'?'物理':s.type==='special'?'特殊':'变化' }}</span>
+              <span class="tag field-tag" style="font-size:9px;" :style="{ background:fieldColor(s.field)+'22',borderColor:fieldColor(s.field),color:fieldColor(s.field) }">{{ fieldEmoji(s.field) }}</span>
+              <span style="font-size:10px;color:var(--text-dim);">Lv.{{ s.learnLevel }}学会</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">{{ s.description }}</div>
+            <div style="display:flex;gap:8px;font-size:10px;color:var(--text-dim);">
+              <span v-if="s.power">⚔ 威力{{ s.power }}</span>
+              <span v-else style="color:var(--green);">变化技</span>
+              <span style="color:#4e9fff;">MP{{ s.mpCost }}</span>
+              <span v-if="s.accuracy<100" style="color:#ff6b35;">命中{{ s.accuracy }}%</span>
+            </div>
+          </div>
+        </div>
         <div style="margin-top:12px;text-align:left;">
           <div style="font-size:14px;font-weight:700;margin-bottom:8px;">🔗 进化路线</div>
           <div class="dex-evo-full">
@@ -82,7 +100,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { digimonTemplates, evoChains, fields, typeColors, abilities } from '../data/digimonData.js'
+import { digimonTemplates, evoChains, fields, typeColors, abilities, uniqueSkills } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import BottomNav from '../components/BottomNav.vue'
 
@@ -203,6 +221,18 @@ const abilityList = computed(() => {
   return selected.value.abilities.map(id => ({ id, name: abilityName(id), desc: abilityDesc(id) })).filter(a => a.name)
 })
 
+const uniqueSkillList = computed(() => {
+  if (!selected.value) return []
+  const name = selected.value.name; const id = selected.value._id||selected.value.id
+  let skills = uniqueSkills[name] || uniqueSkills[id] || []
+  if (!skills.length && selected.value.evolutionTree) {
+    for (const e of selected.value.evolutionTree) {
+      const s = uniqueSkills[e.name]; if (s && s.length) { skills = s; break }
+    }
+  }
+  return skills
+})
+
 // Build full evolutionary chain from base form to final
 const fullEvoChain = computed(() => {
   if (!selected.value) return []
@@ -307,4 +337,5 @@ const fullEvoChain = computed(() => {
 .dex-evo-step-name { font-size:12px; font-weight:700; margin-bottom:4px; }
 .dex-evo-step-tags { display:flex; gap:3px; justify-content:center; margin-bottom:3px; }
 .dex-evo-req { display:flex; gap:2px; flex-wrap:wrap; justify-content:center; }
+.dex-skill-item { background:var(--bg-primary); border-radius:8px; padding:10px 12px; margin-bottom:6px; }
 </style>
