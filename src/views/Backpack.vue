@@ -229,7 +229,7 @@ async function applyItem(digimon) {
       let eq = {}
       try { eq = digimon.equipment ? (typeof digimon.equipment==='string'?JSON.parse(digimon.equipment):digimon.equipment) : {} } catch(e) {}
       if(item.id.startsWith('eqb_')) eq.badge = gear; else eq.digivice = gear
-      await api.update('PlayerDigimon', digimon.objectId, { equipment: JSON.stringify(eq) })
+      await api.update('PlayerDigimon', digimon.objectId, { equipment: JSON.stringify(eq) }, null, true)
       delete playerItems.value[item.id]
       await saveItems(); showUseModal.value = false
       alert(`${digimon.nickname||getTplName(digimon.templateId)} 装备了 ${gear.name}！`)

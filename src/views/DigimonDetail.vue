@@ -112,9 +112,9 @@ const equipData = computed(() => { const d = digimon.value; if (!d?.equipment) r
 const badgeData = computed(() => equipData.value?.badge||null)
 const digiviceData = computed(() => equipData.value?.digivice||null)
 function statLabel(s) { return {hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',healBonus:'治疗加成',resist:'抗性',crit:'暴击率',all:'全属性',mp:'MP'}[s]||s }
-async function unequipBadge() { if(!digimon.value)return; const eq = {...equipData.value}; delete eq.badge; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)}); digimon.value.equipment = JSON.stringify(eq) }
-async function unequipDigivice() { if(!digimon.value)return; const eq = {...equipData.value}; delete eq.digivice; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)}); digimon.value.equipment = JSON.stringify(eq) }
-async function reforgeDigivice() { if(!digimon.value||!digiviceData.value)return; if(!confirm('洗练将重新随机属性值，确定吗？'))return; const newDv = rerollDigivice(digiviceData.value); const eq = {...equipData.value, digivice:newDv}; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)}); digimon.value.equipment = JSON.stringify(eq) }
+async function unequipBadge() { if(!digimon.value)return; const eq = {...equipData.value}; delete eq.badge; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)},null,true); digimon.value.equipment = JSON.stringify(eq) }
+async function unequipDigivice() { if(!digimon.value)return; const eq = {...equipData.value}; delete eq.digivice; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)},null,true); digimon.value.equipment = JSON.stringify(eq) }
+async function reforgeDigivice() { if(!digimon.value||!digiviceData.value)return; if(!confirm('洗练将重新随机属性值，确定吗？'))return; const newDv = rerollDigivice(digiviceData.value); const eq = {...equipData.value, digivice:newDv}; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)},null,true); digimon.value.equipment = JSON.stringify(eq) }
 const talentLabels={white:'普通',blue:'稀有',purple:'史诗',red:'传说'}
 const talentList=computed(()=>{if(!digimon.value?.talents)return[];let arr=digimon.value.talents;if(typeof arr==='string'){try{arr=JSON.parse(arr)}catch(e){return[]}};return arr.map(t=>({...t,color:talentColors[t.rarity]||'#888',rarityLabel:talentLabels[t.rarity]||t.rarity}))})
 function showTalent(t,i){return i===0||(digimon.value?.level||1)>=10}
