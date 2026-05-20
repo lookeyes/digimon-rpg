@@ -173,7 +173,7 @@ import { ref, computed, onMounted } from 'vue'
 import { getTemplate, getNature } from '../data/digimonData.js'
 import api from '../api/bmob.js'
 const authed = ref(false), adminPwd = ref(''), authError = ref('')
-const PWD_HASH = -437408959 // admin123 的 hash
+const PWD_HASH = -969161597
 function doAuth() {
   let h=0; for(let i=0;i<adminPwd.value.length;i++){h=((h<<5)-h)+adminPwd.value.charCodeAt(i);h|=0}
   if (h===PWD_HASH) { authed.value = true; authError.value = ''; loadStats() }
