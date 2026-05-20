@@ -27,8 +27,9 @@ export class BattleEngine {
     }
     const targetStage = maxStage // 敌人阶段匹配玩家最高阶段
     for (let i=0;i<3;i++) {
-      let pool = digimonTemplates
-      if (this.mapFieldId) { pool = pool.filter(t => t.fields && t.fields.includes(this.mapFieldId)) }
+      let pool = digimonTemplates.filter(t => !t.name.includes('X')) // X抗体仅在旧世界出现
+      if (this.mapFieldId && this.mapFieldId !== 'old_world') { pool = pool.filter(t => t.fields && t.fields.includes(this.mapFieldId)) }
+      if (this.mapFieldId === 'old_world') { pool = [...pool, ...digimonTemplates.filter(t => t.name.includes('X'))] }
       // 筛选匹配阶段的敌人
       const stagePool = pool.filter(t => stageOrder[t.stage] === targetStage)
       const finalPool = stagePool.length > 0 ? stagePool : pool.filter(t => stageOrder[t.stage] === targetStage - 1 || stageOrder[t.stage] === targetStage)
