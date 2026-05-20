@@ -90,7 +90,9 @@ export async function evolveDigimon(digimonId, evolutionIndex) {
   const currentName = digimon.nickname || ''; const chain = evoChains[currentName] || tpl?.evolutionTree
   if (!chain || chain.length === 0) throw new Error('无法进化'); const target = chain[evolutionIndex]
   if (!target) throw new Error('进化路线不存在')
-  // X病毒判定
+  if (target.method === 'level' && digimon.level < target.condition) throw new Error(`需要达到Lv.${target.condition}`)
+  if (target.fieldExpRequired) { let fexp = digimon.fieldExp; if (typeof fexp === 'string') try { fexp = JSON.parse(fexp) } catch(e) { fexp = {} }; for (const [fid, req] of Object.entries(target.fieldExpRequired)) { if ((fexp[fid]||0) < req) throw new Error(`领域经验不足`) } }
+  // X病毒判定（满足进化条件后才触发）
   if (digimon.xVirus) {
     if (Math.random() < 0.5) {
       await api.delete('PlayerDigimon', digimonId)
@@ -107,8 +109,6 @@ export async function evolveDigimon(digimonId, evolutionIndex) {
       }
     }
   }
-  if (target.method === 'level' && digimon.level < target.condition) throw new Error(`需要达到Lv.${target.condition}`)
-  if (target.fieldExpRequired) { let fexp = digimon.fieldExp; if (typeof fexp === 'string') try { fexp = JSON.parse(fexp) } catch(e) { fexp = {} }; for (const [fid, req] of Object.entries(target.fieldExpRequired)) { if ((fexp[fid]||0) < req) throw new Error(`领域经验不足`) } }
   let allocated = {}; try { allocated = typeof digimon.allocatedPoints === 'string' ? JSON.parse(digimon.allocatedPoints) : (digimon.allocatedPoints || {}) } catch(e) { allocated = {} }
   const newTpl = digimonTemplates.find(t => t.name === target.name)
   let newTplId, stats, evolvedTo
