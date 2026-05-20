@@ -152,7 +152,22 @@ const allItems = [
   { id: 'virus_antibody', name: '病毒抗体', icon: '💉', desc: '病毒克星领域产生的抗体精华，可兑换稀有道具', price: 0, category: 'trade' }
 ]
 
+const equipBagItems = computed(() => {
+  const items = []
+  for(const [key, val] of Object.entries(playerItems.value)) {
+    if(!key.startsWith('eqb_')&&!key.startsWith('eqd_')) continue
+    try { const gear = typeof val === 'string' ? JSON.parse(val) : val
+      const isBadge = key.startsWith('eqb_')
+      items.push({key, isBadge, gear, icon:gear.icon, name:gear.name,
+        desc: isBadge ? `${sl(gear.stat)}+${gear.value}` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v).join(' '),
+        count:1, category:'equip', usable:true, id:key})
+    } catch(e) {}
+  }
+  return items
+})
+
 const filteredItems = computed(() => {
+  if (activeTab.value === 'equip') return equipBagItems.value
   const catItems = allItems.filter(i => i.category === activeTab.value)
   return catItems.map(i => ({
     ...i,
@@ -161,7 +176,7 @@ const filteredItems = computed(() => {
 })
 
 function getCategoryCount(cat) {
-  if (cat==='equip') return equipDigimons.value.filter(d=>d._badge||d._digivice).length
+  if (cat==='equip') return equipBagItems.value.length + equipDigimons.value.filter(d=>d._badge||d._digivice).length
   const catItems = allItems.filter(i => i.category === cat)
   return catItems.reduce((sum, i) => sum + (playerItems.value[i.id] || 0), 0)
 }
@@ -177,6 +192,11 @@ async function useItem(item) {
   }
   usingItem.value = item; showUseModal.value = true
 }
+
+function parseArray(v) { if (!v) return []; if (typeof v === 'string') { try { return JSON.parse(v) } catch(e) { return [] } } return v }
+function countLearned(d) { return parseArray(d.learnedSkills).length }
+function getTplName(tid) { const t = getTemplate(tid); return t?.name||'???' }
+function digiSprite(d) { const t = getTemplate(d.templateId); return getDigimonSprite(d.templateId, 40, t?.name)||'❓' }
 function getEquipDisplay(d) {
   let eq = d.equipment; if (!eq) return '空'
   if (typeof eq === 'string') try { eq = JSON.parse(eq) } catch(e) { return '空' }
@@ -186,15 +206,23 @@ function getEquipDisplay(d) {
   return parts.length>0 ? parts.join(' · ') : '空'
 }
 
-function parseArray(v) { if (!v) return []; if (typeof v === 'string') { try { return JSON.parse(v) } catch(e) { return [] } } return v }
-
-function countLearned(d) { return parseArray(d.learnedSkills).length }
-
-function getTplName(tid) { const t = getTemplate(tid); return t?.name||'???' }
-
-function digiSprite(d) { const t = getTemplate(d.templateId); return getDigimonSprite(d.templateId, 40, t?.name)||'❓' }
-
 async function applyItem(digimon) {
+  const item = usingItem.value; if(!item)return
+  // Equipment item handling
+  if(item.id?.startsWith('eqb_') || item.id?.startsWith('eqd_')) {
+    try {
+      const gear = typeof playerItems.value[item.id] === 'string' ? JSON.parse(playerItems.value[item.id]) : playerItems.value[item.id]
+      if(!gear){alert('装备数据损坏');return}
+      let eq = {}
+      try { eq = digimon.equipment ? (typeof digimon.equipment==='string'?JSON.parse(digimon.equipment):digimon.equipment) : {} } catch(e) {}
+      if(item.id.startsWith('eqb_')) eq.badge = gear; else eq.digivice = gear
+      await api.update('PlayerDigimon', digimon.objectId, { equipment: JSON.stringify(eq) })
+      delete playerItems.value[item.id]
+      await saveItems(); showUseModal.value = false
+      alert(`${digimon.nickname||getTplName(digimon.templateId)} 装备了 ${gear.name}！`)
+    } catch(e) { alert('装备失败: '+e.message) }
+    return
+  }
   if (usingItem.value?.id === 'skill_scroll') {
     const learned = parseArray(digimon.learnedSkills)
     if (learned.length >= 10) { alert('技能已满 (10个)'); return }
@@ -210,16 +238,15 @@ async function applyItem(digimon) {
     alert(`${digimon.nickname||getTplName(digimon.templateId)} 学会了 ${skill.name}！`)
   } else if (usingItem.value?.id === 'equip_chest') {
     const isBadge = Math.random() < 0.5
-    let eq = digimon.equipment
-    try { eq = typeof eq === 'string' ? JSON.parse(eq) : (eq || {}) } catch(e) { eq = {} }
-    if (isBadge) { eq.badge = rollBadge() } else { eq.digivice = rollDigivice() }
-    await api.update('PlayerDigimon', digimon.objectId, { equipment: JSON.stringify(eq) })
+    const gear = isBadge ? rollBadge() : rollDigivice()
+    const prefix = isBadge ? 'eqb_' : 'eqd_'
+    let idx = 0; while (playerItems.value[prefix+idx] !== undefined) idx++
+    playerItems.value[prefix+idx] = JSON.stringify(gear)
     playerItems.value['equip_chest'] = Math.max(0, (playerItems.value['equip_chest']||0)-1)
     await saveItems(); showUseModal.value = false
-    const gear = isBadge ? eq.badge : eq.digivice
-    const sl = s => ({hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',mp:'MP'}[s]||s)
-    const gearDesc = isBadge ? `${gear.name} ${gear.icon} ${sl(gear.stat)}+${gear.value}` : `${gear.name} ${gear.icon} ${Object.entries(gear.stats).map(([k,v])=>sl(k)+'+'+v).join(' ')}`
-    alert(`🎁 ${isBadge?'徽章':'暴龙机'}！\n${digimon.nickname||getTplName(digimon.templateId)} 获得 ${gearDesc}`)
+    const sl2 = s => ({hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',mp:'MP'}[s]||s)
+    const gearDesc = isBadge ? `${gear.name} ${gear.icon} ${sl2(gear.stat)}+${gear.value}` : `${gear.name} ${gear.icon} ${Object.entries(gear.stats).map(([k,v])=>sl2(k)+'+'+v).join(' ')}`
+    alert(`🎁 ${isBadge?'徽章':'暴龙机'}！\n${gearDesc}\n已放入背包，点击可装备给数码兽`)
   } else if (usingItem.value?.id === 'name_tag') {
     const name = prompt('请输入新名字：', digimon.nickname || getTplName(digimon.templateId))
     if (!name || name.trim() === '') return
