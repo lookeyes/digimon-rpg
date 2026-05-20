@@ -28,14 +28,14 @@
 
     <div class="about-section">
       <div class="about-section-title">🃏 卡牌收集 ({{ ownedCards }}/50)</div>
-      <div class="ex-mat-grid">
-        <div v-for="card in cardList" :key="card.id" class="ex-mat-item" :class="{ owned: card.count>0 }">
-          <span>{{ card.count>0?'🃏':'🂠' }}</span>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ card.name }}</div>
-            <div style="font-size:10px;color:var(--text-dim);">{{ card.stage }}</div>
+      <div class="card-grid">
+        <div v-for="card in cardList" :key="card.id" class="card-item" :class="{ owned: card.count>0, missing: card.count===0 }">
+          <div class="card-img" v-html="card.sprite"></div>
+          <div class="card-info">
+            <div class="card-name-text">{{ card.name }}</div>
+            <div class="card-stage-text">{{ card.stage }}</div>
           </div>
-          <span style="font-size:13px;font-weight:700;" :style="{color:card.count>0?'var(--accent)':'var(--text-dim)'}">×{{ card.count }}</span>
+          <div class="card-count" :class="{ has: card.count>0 }">×{{ card.count }}</div>
         </div>
       </div>
     </div>
@@ -48,10 +48,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { getPlayerInfo } from '../api/game.js'
 import { digimonTemplates, cardMilestones, getCardBonus } from '../data/digimonData.js'
+import { getDigimonSprite } from '../data/digimonSprites.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const playerCards = ref({})
-const cardList = computed(() => digimonTemplates.map(t => ({ id: t.id, name: t.name, stage: t.stage, count: playerCards.value[t.id]||0 })))
+const cardList = computed(() => digimonTemplates.map(t => ({ id: t.id, name: t.name, stage: t.stage, count: playerCards.value[t.id]||0, sprite: getDigimonSprite(t.id, 60, t.name) })))
 const totalCards = computed(() => Object.values(playerCards.value).reduce((s,v)=>s+v,0))
 const ownedCards = computed(() => cardList.value.filter(c=>c.count>0).length)
 const currentBonus = computed(() => getCardBonus(totalCards.value))
@@ -71,5 +72,15 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.ex-mat-item.owned { border-color: var(--accent); }
+.card-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.card-item { background:var(--bg-card); border:2px solid var(--border); border-radius:10px; padding:8px; text-align:center; transition:all 0.15s; }
+.card-item.owned { border-color:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+.card-item.missing { opacity:0.4; }
+.card-img { width:50px; height:50px; margin:0 auto 4px; }
+.card-img :deep(img) { width:50px; height:50px; }
+.card-info { margin-bottom:2px; }
+.card-name-text { font-size:10px; font-weight:700; line-height:1.2; }
+.card-stage-text { font-size:9px; color:var(--text-dim); }
+.card-count { font-size:14px; font-weight:900; color:var(--text-dim); }
+.card-count.has { color:var(--accent); }
 </style>
