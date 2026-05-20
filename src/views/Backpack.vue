@@ -211,12 +211,12 @@ function countLearned(d) { return parseArray(d.learnedSkills).length }
 function getTplName(tid) { const t = getTemplate(tid); return t?.name||'???' }
 function digiSprite(d) { const t = getTemplate(d.templateId); return getDigimonSprite(d.templateId, 40, t?.name)||'❓' }
 function getEquipDisplay(d) {
-  let eq = d.equipment; if (!eq) return '空'
-  if (typeof eq === 'string') try { eq = JSON.parse(eq) } catch(e) { return '空' }
-  const parts = []
-  if (eq.badge) parts.push(eq.badge.icon+' '+eq.badge.name)
-  if (eq.digivice) parts.push(eq.digivice.icon+' '+eq.digivice.name)
-  return parts.length>0 ? parts.join(' · ') : '空'
+  try { const s = typeof d.stats === 'string' ? JSON.parse(d.stats) : (d.stats||{}); const eq = s._equip; if(!eq)return'空'
+    const parts = []
+    if(eq.badge) parts.push(eq.badge.icon+' '+eq.badge.name)
+    if(eq.digivice) parts.push(eq.digivice.icon+' '+eq.digivice.name)
+    return parts.length>0?parts.join(' · '):'空'
+  } catch(e) { return '空' }
 }
 
 async function applyItem(digimon) {
@@ -229,7 +229,8 @@ async function applyItem(digimon) {
       let eq = {}
       try { eq = digimon.equipment ? (typeof digimon.equipment==='string'?JSON.parse(digimon.equipment):digimon.equipment) : {} } catch(e) {}
       if(item.id.startsWith('eqb_')) eq.badge = gear; else eq.digivice = gear
-      await api.update('PlayerDigimon', digimon.objectId, { equipment: JSON.stringify(eq) }, null, true)
+      let s = digimon.stats; try { s = typeof s === 'string' ? JSON.parse(s) : (s||{}) } catch(e) { s = {} }; s._equip = eq
+      await api.update('PlayerDigimon', digimon.objectId, { stats: JSON.stringify(s) })
       delete playerItems.value[item.id]
       await saveItems(); showUseModal.value = false
       alert(`${digimon.nickname||getTplName(digimon.templateId)} 装备了 ${gear.name}！`)
@@ -299,7 +300,7 @@ async function loadEquipData() {
     const all = await getMyDigimons()
     equipDigimons.value = all.map(d => {
       let eq = {}
-      try { eq = d.equipment ? (typeof d.equipment === 'string' ? JSON.parse(d.equipment) : d.equipment) : {} } catch(e) {}
+      try { const s = d.stats ? (typeof d.stats === 'string' ? JSON.parse(d.stats) : d.stats) : {}; eq = s._equip||{} } catch(e) {}
       const tpl = getTemplate(d.templateId)
       return {...d, _badge:eq.badge||null, _digivice:eq.digivice||null, _tplName:tpl?.name}
     })
