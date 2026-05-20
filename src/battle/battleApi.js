@@ -46,8 +46,27 @@ export async function saveBattleResults(playerTeam, enemyTeam, rewards) {
       await api.updateUser(userId(), { items: JSON.stringify(items) })
     }
   } catch(e) { console.error('更新掉落失败:', e) }
+  // Roll cards
+  let cardDrops = []
+  try {
+    for (const enemy of enemyTeam) {
+      if (Math.random() < 0.01) {
+        const tpl = getTemplate(enemy.templateId); if (!tpl) continue
+        const cardId = tpl.id; const cardName = tpl.name
+        const exist = cardDrops.find(c => c.id === cardId)
+        if (exist) exist.count++; else cardDrops.push({id:cardId, name:cardName, count:1})
+      }
+    }
+    if (cardDrops.length > 0) {
+      const user = await api.getUser(userId())
+      let cards = {}
+      try { cards = typeof user.cards === 'string' ? JSON.parse(user.cards) : (user.cards || {}) } catch(e) {}
+      for (const c of cardDrops) { cards[c.id] = (cards[c.id] || 0) + c.count }
+      await api.updateUser(userId(), { cards: JSON.stringify(cards) })
+    }
+  } catch(e) { console.error('更新卡牌失败:', e) }
   // Update gold
   try { let goldMult = 1.0; for (const digimon of allDigimons) { let t = digimon.talents; if (typeof t === 'string') try { t = JSON.parse(t) } catch(e) { t = [] }; goldMult = Math.max(goldMult, getGoldMultiplier(t||[], digimon.level||1)) }; const user = await api.getUser(userId()); await api.updateUser(userId(), { gold: (user.gold||0) + Math.floor(rewards.gold*goldMult) }) } catch(e) { console.error('更新Bits失败:', e) }
-  results._drops = drops
+  results._drops = drops; results._cards = cardDrops
   return results
 }

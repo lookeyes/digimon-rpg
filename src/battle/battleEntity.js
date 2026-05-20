@@ -5,7 +5,7 @@ export const STATUS_ICONS = { burn:'🔥', paralysis:'⚡', poison:'☠️', sle
 export const STATUS_NAMES = { burn:'灼烧', paralysis:'麻痹', poison:'中毒', sleep:'睡眠', freeze:'冰冻', confusion:'混乱' }
 
 export class BattleEntity {
-  constructor(digimon, template, skills, isPlayer) {
+  constructor(digimon, template, skills, isPlayer, cardBonus) {
     this.objectId = digimon.objectId; this.templateId = digimon.templateId; this.name = digimon.nickname || template.name
     this.level = digimon.level; this.fields = template.fields || []; this.type = template.type; this.isPlayer = isPlayer
     this.evolvedName = template.name
@@ -13,6 +13,14 @@ export class BattleEntity {
     const rawStats = this._parseStats(digimon.stats); const s = applyTalents(rawStats, talents || [], digimon.level || 1)
     this.maxHp = s.maxHp || 100; this.hp = s.hp || s.maxHp || 100; this.maxMp = s.maxMp || 50; this.mp = s.mp || s.maxMp || 50
     this.atk = s.atk || 20; this.def = s.def || 15; this.spAtk = s.spAtk || 20; this.spDef = s.spDef || 15; this.spd = s.spd || 18
+    // 卡牌全局加成
+    if (isPlayer && cardBonus) {
+      const bn = cardBonus; const pct = (v,k) => bn[k] ? v * (1 + bn[k]/100) : v
+      this.maxHp = Math.floor(pct(this.maxHp,'hp')); this.hp = Math.floor(pct(this.hp,'hp'))
+      this.atk = Math.floor(pct(this.atk,'atk')); this.def = Math.floor(pct(this.def,'def'))
+      this.spAtk = Math.floor(pct(this.spAtk,'spAtk')); this.spDef = Math.floor(pct(this.spDef,'spDef'))
+      this.spd = Math.floor(pct(this.spd,'spd'))
+    }
     this.baseAtk = this.atk; this.baseDef = this.def; this.baseSpAtk = this.spAtk; this.baseSpDef = this.spDef; this.baseSpd = this.spd; this.baseAccuracy = 100
     this.stages = { atk:0, def:0, spAtk:0, spDef:0, spd:0, accuracy:0 }; this.status = null; this.statusTurns = 0; this.confusionTurns = 0
     this.skills = skills || []; this.alive = true

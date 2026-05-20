@@ -67,7 +67,8 @@
     </div>
   </template>
 
-  <div v-if="phase==='result'" class="page" style="text-align:center;"><div style="font-size:64px;margin:40px 0 20px;">{{ won ? '🎉' : '💀' }}</div><div class="page-title">{{ won ? '战斗胜利！' : '战斗失败...' }}</div><div v-if="winStreak>1" style="color:var(--gold);font-size:14px;margin-bottom:10px;">🔥 连胜 ×{{ winStreak }}</div><div v-if="won" class="card" style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:10px;">奖励</div><div>💰 Bits +{{ rewards.gold }}</div><div>⭐ EXP +{{ rewards.expPer }} /只</div><div v-if="levelUps.length>0" style="color:var(--green);margin-top:8px;">🎊 升级！{{ levelUps.join('、') }}</div><div v-if="drops.length>0" style="margin-top:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">🎁 掉落物品</div><div v-for="d in drops" :key="d.id" style="font-size:13px;display:flex;align-items:center;gap:6px;justify-content:center;"><span>{{ d.icon }}</span><span>{{ d.name }}</span><span style="color:var(--accent);">×{{ d.count }}</span></div></div></div><div v-if="won && autoContinue" class="auto-continue-bar card" style="margin-bottom:12px;text-align:center;"><div style="font-size:13px;color:var(--accent);margin-bottom:4px;">🔄 自动连战中（{{ battlesFought }}/{{ battleLimit }}）</div></div><div v-if="won" class="card" style="margin-bottom:12px;text-align:center;"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">继续连战</div><div style="display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--text-dim);margin-bottom:8px;">次数<button class="alloc-btn" @click="battleLimit=Math.max(2,battleLimit-1)">−</button><input class="alloc-input" type="number" v-model.number="battleLimit" min="2" max="100" style="width:50px;"/><button class="alloc-btn" @click="battleLimit=Math.min(100,battleLimit+1)">+</button></div><button class="btn btn-primary" @click="startContinueBattles">🚀 自动连战 {{ battleLimit }} 次</button></div><button class="btn btn-secondary" style="margin-right:10px;" @click="continueAdventure">返回地图</button><button class="btn btn-secondary" style="margin-top:10px;" @click="stopAdventure">返回主页</button></div>
+  <div v-if="phase==='result'" class="page" style="text-align:center;"><div style="font-size:64px;margin:40px 0 20px;">{{ won ? '🎉' : '💀' }}</div><div class="page-title">{{ won ? '战斗胜利！' : '战斗失败...' }}</div><div v-if="winStreak>1" style="color:var(--gold);font-size:14px;margin-bottom:10px;">🔥 连胜 ×{{ winStreak }}</div><div v-if="won" class="card" style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:10px;">奖励</div><div>💰 Bits +{{ rewards.gold }}</div><div>⭐ EXP +{{ rewards.expPer }} /只</div><div v-if="levelUps.length>0" style="color:var(--green);margin-top:8px;">🎊 升级！{{ levelUps.join('、') }}</div><div v-if="cardDrops.length>0" style="margin-top:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">🃏 获得卡牌</div><div v-for="d in cardDrops" :key="d.id" style="font-size:13px;display:flex;align-items:center;gap:6px;justify-content:center;"><span>🃏</span><span>{{ d.name }}</span><span style="color:var(--accent);">×{{ d.count }}</span></div></div>
+<div v-if="drops.length>0" style="margin-top:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">🎁 掉落物品</div><div v-for="d in drops" :key="d.id" style="font-size:13px;display:flex;align-items:center;gap:6px;justify-content:center;"><span>{{ d.icon }}</span><span>{{ d.name }}</span><span style="color:var(--accent);">×{{ d.count }}</span></div></div></div><div v-if="won && autoContinue" class="auto-continue-bar card" style="margin-bottom:12px;text-align:center;"><div style="font-size:13px;color:var(--accent);margin-bottom:4px;">🔄 自动连战中（{{ battlesFought }}/{{ battleLimit }}）</div></div><div v-if="won" class="card" style="margin-bottom:12px;text-align:center;"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">继续连战</div><div style="display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--text-dim);margin-bottom:8px;">次数<button class="alloc-btn" @click="battleLimit=Math.max(2,battleLimit-1)">−</button><input class="alloc-input" type="number" v-model.number="battleLimit" min="2" max="100" style="width:50px;"/><button class="alloc-btn" @click="battleLimit=Math.min(100,battleLimit+1)">+</button></div><button class="btn btn-primary" @click="startContinueBattles">🚀 自动连战 {{ battleLimit }} 次</button></div><button class="btn btn-secondary" style="margin-right:10px;" @click="continueAdventure">返回地图</button><button class="btn btn-secondary" style="margin-top:10px;" @click="stopAdventure">返回主页</button></div>
 </div>
 </template>
 
@@ -80,14 +81,14 @@ import { getMyDigimons, getPlayerInfo } from '../api/game.js'
 import { getCurrentUser } from '../api/auth.js'
 import api from '../api/bmob.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
-import { fields, xVirusTargets, getTemplate } from '../data/digimonData.js'
+import { fields, xVirusTargets, getTemplate, getCardBonus } from '../data/digimonData.js'
 import { STATUS_ICONS } from '../battle/battleEntity.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const router = useRouter()
 const phase=ref('mapSelect'),expandedMap=ref(null),mapTab=ref('normal'),autoContinue=ref(false),winStreak=ref(0),battleLimit=ref(5),battlesFought=ref(0),finishing=ref(false)
 const engine=ref(null),targeting=ref(false),selectedSkill=ref(null),selectedItem=ref(null),showItems=ref(false),playerItems=ref({}),logLines=ref([])
-const won=ref(false),rewards=ref({gold:0,expPer:0,fieldExp:{}}),levelUps=ref([]),drops=ref([]),playerMaxLv=ref(1),lastMapField=ref(null),lastLevelMin=ref(1)
+const won=ref(false),rewards=ref({gold:0,expPer:0,fieldExp:{}}),levelUps=ref([]),drops=ref([]),cardDrops=ref([]),playerMaxLv=ref(1),lastMapField=ref(null),lastLevelMin=ref(1)
 
 function getSprite(t,e){return getDigimonSprite(t,60,e?.evolvedName)||'❓'}
 function hpPct(e){return Math.round(e.hp/Math.max(1,e.maxHp)*100)}
@@ -106,7 +107,8 @@ async function startBattle(mf,lm){
   if(team.length===0){phase.value='noTeam';return}
   const pa=engine.value?.autoBattle||false;lastMapField.value=mf;lastLevelMin.value=lm
   if(!autoContinue.value)battlesFought.value=0;finishing.value=false
-  engine.value=new BattleEngine(team,onLog,onState,mf,lm,lm+9);engine.value.autoBattle=pa
+  let cardBonus=null;try{const info=await getPlayerInfo();let cards={};if(info.cards)cards=typeof info.cards==='string'?JSON.parse(info.cards):info.cards;const total=Object.values(cards).reduce((s,v)=>s+v,0);cardBonus=getCardBonus(total)}catch(e){}
+  engine.value=new BattleEngine(team,onLog,onState,mf,lm,lm+9,cardBonus);engine.value.autoBattle=pa
   phase.value='battle';logLines.value=[];showItems.value=false;selectedItem.value=null;await loadPlayerItems();engine.value.start()
 }
 function onLog(m){logLines.value.push(m);if(logLines.value.length>20)logLines.value.shift()}
@@ -119,7 +121,7 @@ function fleeBattle(){engine.value.fled=true;engine.value.phase='ended';engine.v
 async function finishBattle(){
   if(finishing.value)return;finishing.value=true
   const w=engine.value.playerAlive.length>0&&!engine.value.fled;won.value=w
-  if(w){winStreak.value++;const r=engine.value.getRewards();rewards.value=r;drops.value=[];try{const rs=await saveBattleResults(engine.value.playerTeam,engine.value.enemyTeam,r);levelUps.value=rs.filter(r=>r.levelUps.length>0).map(r=>`${r.name}→Lv.${r.level}`);drops.value=rs._drops||[]}catch(e){console.error(e)};if(lastMapField.value==='old_world'){try{await checkXVirus()}catch(e){console.error(e)}}}
+  if(w){winStreak.value++;const r=engine.value.getRewards();rewards.value=r;drops.value=[];cardDrops.value=[];try{const rs=await saveBattleResults(engine.value.playerTeam,engine.value.enemyTeam,r);levelUps.value=rs.filter(r=>r.levelUps.length>0).map(r=>`${r.name}→Lv.${r.level}`);drops.value=rs._drops||[];cardDrops.value=rs._cards||[]}catch(e){console.error(e)};if(lastMapField.value==='old_world'){try{await checkXVirus()}catch(e){console.error(e)}}}
   else{winStreak.value=0}
   if(w&&autoContinue.value&&battlesFought.value<battleLimit.value){battlesFought.value++;phase.value='result';setTimeout(()=>{if(autoContinue.value&&battlesFought.value<battleLimit.value)startBattle(lastMapField.value,lastLevelMin.value)},1500);return}
   if(battlesFought.value>=battleLimit.value)autoContinue.value=false

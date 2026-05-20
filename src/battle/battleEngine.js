@@ -5,14 +5,14 @@ const STATUS_NAMES = { burn:'灼烧', paralysis:'麻痹', poison:'中毒', sleep
 const STATUS_LIST = ['burn','paralysis','poison','sleep','freeze','confusion']
 
 export class BattleEngine {
-  constructor(playerDigimons, onLog, onStateChange, mapFieldId=null, levelMin=1, levelMax=10) {
+  constructor(playerDigimons, onLog, onStateChange, mapFieldId=null, levelMin=1, levelMax=10, cardBonus=null) {
     this.playerTeam=[]; this.enemyTeam=[]; this.allEntities=[]; this.turnOrder=[]; this.currentIdx=0; this.turn=0; this.phase='init'; this.battleLog=[]
     this.onLog=onLog||(()=>{}); this.onStateChange=onStateChange||(()=>{}); this.autoBattle=false; this.fled=false
-    this.mapFieldId=mapFieldId; this.levelMin=levelMin; this.levelMax=levelMax; this._initTeams(playerDigimons)
+    this.mapFieldId=mapFieldId; this.levelMin=levelMin; this.levelMax=levelMax; this.cardBonus=cardBonus; this._initTeams(playerDigimons)
   }
 
   _initTeams(playerDigimons) {
-    for (const d of playerDigimons) { const tpl=getTemplate(d.templateId); const skills=this._parseArr(d.equippedSkills).map(id=>getSkill(id)).filter(Boolean); this.playerTeam.push(new BattleEntity(d,tpl,skills,true)) }
+    for (const d of playerDigimons) { const tpl=getTemplate(d.templateId); const skills=this._parseArr(d.equippedSkills).map(id=>getSkill(id)).filter(Boolean); this.playerTeam.push(new BattleEntity(d,tpl,skills,true,this.cardBonus)) }
     const avgLv=Math.floor(playerDigimons.reduce((s,d)=>s+d.level,0)/Math.max(1,playerDigimons.length))
     const lvMin=this.levelMin||1; const lvMax=this.levelMax||10
     const enemyLevel=Math.max(lvMin,Math.min(lvMax,avgLv+Math.floor(Math.random()*3)-1))

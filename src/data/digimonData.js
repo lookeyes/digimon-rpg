@@ -379,6 +379,19 @@ export const fieldDropTable = {
   unknown:{item:'virus_antibody',name:'病毒抗体',icon:'💉',rate:0.25}
 }
 
+// 卡牌加成系统
+export const cardMilestones = [
+  {count:1,label:'收集1张',bonus:{hp:1}},{count:5,label:'收集5张',bonus:{atk:2,def:2}},
+  {count:10,label:'收集10张',bonus:{hp:3,atk:3,def:3,spAtk:3,spDef:3,spd:3}},
+  {count:50,label:'收集50张',bonus:{hp:5,atk:5,def:5,spAtk:5,spDef:5,spd:5}},
+  {count:100,label:'收集100张',bonus:{hp:10,atk:10,def:10,spAtk:10,spDef:10,spd:10}}
+]
+export function getCardBonus(cardCount) {
+  let bonus = {hp:0,atk:0,def:0,spAtk:0,spDef:0,spd:0}
+  for (const m of cardMilestones) { if (cardCount >= m.count) { for (const [k,v] of Object.entries(m.bonus)) { bonus[k] = (bonus[k]||0) + v } } }
+  return bonus
+}
+
 // X病毒可感染列表
 export const xVirusTargets = ['亚古兽','暴龙兽','机械暴龙兽','战斗暴龙兽','加布兽','加鲁鲁兽','兽人加鲁鲁','钢铁加鲁鲁']
 export function getXAntibodyName(name) { return name + 'X' }
