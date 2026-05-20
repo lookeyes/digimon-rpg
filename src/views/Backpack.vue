@@ -192,7 +192,8 @@ async function applyItem(digimon) {
     playerItems.value['equip_chest'] = Math.max(0, (playerItems.value['equip_chest']||0)-1)
     await saveItems(); showUseModal.value = false
     const gear = isBadge ? eq.badge : eq.digivice
-    const gearDesc = isBadge ? `${gear.name} ${gear.icon} ${gear.stat}+${gear.value}` : `${gear.name} ${gear.icon} ${Object.entries(gear.stats).map(([k,v])=>statLabel(k)+'+'+v).join(' ')}`
+    const sl = s => ({hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',mp:'MP'}[s]||s)
+    const gearDesc = isBadge ? `${gear.name} ${gear.icon} ${sl(gear.stat)}+${gear.value}` : `${gear.name} ${gear.icon} ${Object.entries(gear.stats).map(([k,v])=>sl(k)+'+'+v).join(' ')}`
     alert(`🎁 ${isBadge?'徽章':'暴龙机'}！\n${digimon.nickname||getTplName(digimon.templateId)} 获得 ${gearDesc}`)
   } else if (usingItem.value?.id === 'name_tag') {
     const name = prompt('请输入新名字：', digimon.nickname || getTplName(digimon.templateId))
