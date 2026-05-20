@@ -3,28 +3,43 @@
   <template v-if="phase==='mapSelect'">
     <div class="page">
       <button class="back-btn" @click="$router.back()">← 返回</button>
-      <div class="page-title"><span>选择</span>冒险地图</div>
-      <div class="bp-tabs">
+      <div class="page-title">⚔️ 冒险地图</div>
+      <div style="font-size:12px;color:var(--text-dim);text-align:center;margin-bottom:14px;">编队最高 Lv.{{ playerMaxLv }} · 选择地图开始战斗</div>
+      <div class="bp-tabs" style="margin-bottom:14px;">
         <button class="bp-tab" :class="{ active: mapTab==='normal' }" @click="mapTab='normal'">🌍 普通地图</button>
-        <button class="bp-tab" :class="{ active: mapTab==='special' }" @click="mapTab='special'">⚠️ 特殊地图</button>
+        <button class="bp-tab" :class="{ active: mapTab==='special' }" @click="mapTab='special'">☠️ 特殊地图</button>
       </div>
       <!-- 普通地图 -->
       <div class="map-list" v-if="mapTab==='normal'">
-        <div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id">
-          <div class="map-header"><span class="map-emoji">{{ f.emoji }}</span><div><div class="map-name">{{ f.name }}</div><div class="map-desc">{{ f.desc }}</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap===f.id?'收起':'展开' }}</span></div>
+        <div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color, borderLeftWidth: '4px' }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id">
+          <div class="map-header">
+            <span class="map-emoji">{{ f.emoji }}</span>
+            <div style="flex:1;">
+              <div class="map-name" :style="{ color: f.color }">{{ f.name }}</div>
+              <div class="map-desc">{{ f.desc }}</div>
+            </div>
+            <span class="map-arrow">{{ expandedMap===f.id?'▲':'▼' }}</span>
+          </div>
           <div v-if="expandedMap===f.id" class="map-levels">
-            <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">选择等级区间：</div>
-            <div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">敌方数码兽将匹配你的编队阶段</div>
+            <div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" :class="{ recommended: lv <= playerMaxLv && lv+9 >= playerMaxLv }" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div>
           </div>
         </div>
       </div>
       <!-- 特殊地图 -->
       <div class="map-list" v-if="mapTab==='special'">
-        <div class="map-card" style="border-color:#b44dff;" :class="{ expanded: expandedMap==='old_world' }" @click="expandedMap = expandedMap==='old_world' ? null : 'old_world'">
-          <div class="map-header"><span class="map-emoji">☠️</span><div><div class="map-name">旧世界</div><div class="map-desc">被遗忘的远古战场，潜伏着X病毒...</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap==='old_world'?'收起':'展开' }}</span></div>
+        <div class="map-card special-map" :class="{ expanded: expandedMap==='old_world' }" @click="expandedMap = expandedMap==='old_world' ? null : 'old_world'">
+          <div class="map-header">
+            <span class="map-emoji">☠️</span>
+            <div style="flex:1;">
+              <div class="map-name" style="color:#b44dff;">旧世界</div>
+              <div class="map-desc">被遗忘的远古战场，潜伏着X病毒...</div>
+            </div>
+            <span class="map-arrow">{{ expandedMap==='old_world'?'▲':'▼' }}</span>
+          </div>
           <div v-if="expandedMap==='old_world'" class="map-levels">
-            <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">⚠️ 1%概率使数码兽感染X病毒</div>
-            <div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle('old_world', lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div>
+            <div style="font-size:12px;color:#b44dff;margin-bottom:8px;">⚠️ 战斗胜利后1%概率使数码兽感染X病毒</div>
+            <div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn special-lv" :class="{ recommended: lv <= playerMaxLv && lv+9 >= playerMaxLv }" @click.stop="startBattle('old_world', lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div>
           </div>
         </div>
       </div>

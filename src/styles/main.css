@@ -1165,6 +1165,14 @@ body {
 .map-levels{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .level-grid{display:flex;flex-wrap:wrap;gap:6px;}
 .level-btn{padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.level-btn:hover{background:var(--bg-card-hover);border-color:var(--accent);}
+.level-btn.recommended{border-color:var(--accent);box-shadow:0 0 8px var(--accent-glow);}
+.level-btn.special-lv{border-color:#b44dff;color:#d4a0ff;}
+.level-btn.special-lv:hover{background:rgba(180,77,255,0.15);}
+.map-arrow{color:var(--text-dim);font-size:10px;transition:transform 0.2s;}
+.map-card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.special-map{border-color:#b44dff!important;border-left-width:4px!important;background:linear-gradient(135deg,var(--bg-card),rgba(180,77,255,0.05));}
+.special-map:hover{border-color:#c77dff!important;}
 .team-slots{display:flex;gap:8px;}
 .team-slot{flex:1;min-height:100px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;position:relative;cursor:pointer;transition:all 0.2s;background:var(--bg-card);}
 .team-slot:not(.empty){border-style:solid;border-color:var(--accent);box-shadow:0 0 6px var(--accent-glow);}
