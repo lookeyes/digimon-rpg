@@ -1,5 +1,15 @@
 <template>
   <div class="page" style="padding-bottom:80px;">
+    <!-- 密码验证 -->
+    <div v-if="!authed" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;">
+      <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+      <h2>后台管理</h2>
+      <input v-model="adminPwd" type="password" placeholder="请输入管理密码" class="alloc-input" style="width:200px;margin-top:16px;" @keyup.enter="doAuth">
+      <button class="btn btn-primary" style="width:200px;margin-top:10px;" @click="doAuth">验证</button>
+      <p v-if="authError" style="color:var(--red);font-size:12px;margin-top:8px;">{{ authError }}</p>
+    </div>
+
+    <template v-if="authed">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
       <button class="back-btn" @click="$router.back()">← 返回</button>
       <div class="page-title" style="margin:0;"><span>🔧</span> 后台管理</div>
@@ -91,6 +101,7 @@
     </div>
 
     <BottomNav/>
+    </template>
   </div>
 </template>
 
@@ -98,6 +109,14 @@
 import { ref, computed } from 'vue'
 import api from '../api/bmob.js'
 import BottomNav from '../components/BottomNav.vue'
+
+const authed = ref(false), adminPwd = ref(''), authError = ref('')
+const ADMIN_PASSWORD = 'admin123'
+
+function doAuth() {
+  if (adminPwd.value === ADMIN_PASSWORD) { authed.value = true; authError.value = '' }
+  else { authError.value = '密码错误'; adminPwd.value = '' }
+}
 
 const tab = ref('players')
 const tabs = [{key:'players',label:'👤 玩家'},{key:'digimon',label:'🐉 数码兽'},{key:'eggs',label:'🥚 数码蛋'}]
