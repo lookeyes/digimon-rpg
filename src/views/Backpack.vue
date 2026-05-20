@@ -87,6 +87,21 @@
       </div>
     </div>
 
+    <!-- 装备详情弹窗 -->
+    <div v-if="showGearModal&&gearDetail" class="modal-overlay" @click.self="showGearModal=false">
+      <div class="dex-modal" style="text-align:center;">
+        <div style="font-size:48px;">{{ gearDetail.gear.icon }}</div>
+        <h3>{{ gearDetail.gear.name }}</h3>
+        <p style="font-size:13px;color:var(--accent);margin-bottom:12px;">{{ gearDetail.desc }}</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-md" @click="doEquipGear">⚔️ 装备</button>
+          <button v-if="!gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeGear">🔁 洗练</button>
+          <button class="btn btn-danger btn-md" @click="doDiscardGear">🗑️ 丢弃</button>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;" @click="showGearModal=false">关闭</button>
+      </div>
+    </div>
+
     <BottomNav/>
   </div>
 </template>
@@ -181,6 +196,7 @@ function getCategoryCount(cat) {
   return catItems.reduce((sum, i) => sum + (playerItems.value[i.id] || 0), 0)
 }
 
+const showGearModal = ref(false); const gearDetail = ref(null); const gearItemKey = ref('')
 async function useItem(item) {
   if (item.id === 'equip_chest') {
     const isBadge = Math.random() < 0.5
@@ -195,6 +211,17 @@ async function useItem(item) {
     alert(`🎁 获得装备！\n${gearDesc}\n已放入背包装备栏`)
     return
   }
+  // Equipment item: show detail modal
+  if(item.id?.startsWith('eqb_') || item.id?.startsWith('eqd_')) {
+    const isBadge = item.id.startsWith('eqb_')
+    try {
+      const gear = typeof playerItems.value[item.id] === 'string' ? JSON.parse(playerItems.value[item.id]) : playerItems.value[item.id]
+      if(!gear){alert('装备数据损坏');return}
+      gearDetail.value = {isBadge, gear, desc: isBadge ? `${sl(gear.stat)}+${gear.value}` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v).join(' ')}
+      gearItemKey.value = item.id; showGearModal.value = true
+    } catch(e) { alert('读取失败') }
+    return
+  }
   const all = await getMyDigimons()
   if (all.length === 0) { alert('没有数码兽'); return }
   if (item.id === 'skill_scroll') {
@@ -204,6 +231,24 @@ async function useItem(item) {
     digimonList.value = all
   }
   usingItem.value = item; showUseModal.value = true
+}
+
+async function doEquipGear() {
+  if(!gearDetail.value)return; showGearModal.value = false
+  const all = await getMyDigimons(); if(all.length===0){alert('没有数码兽');return}
+  digimonList.value = all; usingItem.value = {id: gearItemKey.value}; showUseModal.value = true
+}
+async function doReforgeGear() {
+  if(!gearDetail.value||gearDetail.value.isBadge)return
+  const newDv = rerollDigivice(gearDetail.value.gear)
+  playerItems.value[gearItemKey.value] = JSON.stringify(newDv)
+  await saveItems()
+  gearDetail.value = {isBadge:false, gear:newDv, desc: Object.entries(newDv.stats||{}).map(([k,v])=>sl(k)+'+'+v).join(' ')}
+  alert('洗练完成！')
+}
+async function doDiscardGear() {
+  if(!confirm('确定丢弃这个装备吗？'))return
+  delete playerItems.value[gearItemKey.value]; await saveItems(); showGearModal.value = false
 }
 
 function parseArray(v) { if (!v) return []; if (typeof v === 'string') { try { return JSON.parse(v) } catch(e) { return [] } } return v }
@@ -221,22 +266,7 @@ function getEquipDisplay(d) {
 
 async function applyItem(digimon) {
   const item = usingItem.value; if(!item)return
-  // Equipment item handling
-  if(item.id?.startsWith('eqb_') || item.id?.startsWith('eqd_')) {
-    try {
-      const gear = typeof playerItems.value[item.id] === 'string' ? JSON.parse(playerItems.value[item.id]) : playerItems.value[item.id]
-      if(!gear){alert('装备数据损坏');return}
-      let eq = {}
-      try { eq = digimon.equipment ? (typeof digimon.equipment==='string'?JSON.parse(digimon.equipment):digimon.equipment) : {} } catch(e) {}
-      if(item.id.startsWith('eqb_')) eq.badge = gear; else eq.digivice = gear
-      let s = digimon.stats; try { s = typeof s === 'string' ? JSON.parse(s) : (s||{}) } catch(e) { s = {} }; s._equip = eq
-      await api.update('PlayerDigimon', digimon.objectId, { stats: JSON.stringify(s) })
-      delete playerItems.value[item.id]
-      await saveItems(); showUseModal.value = false
-      alert(`${digimon.nickname||getTplName(digimon.templateId)} 装备了 ${gear.name}！`)
-    } catch(e) { alert('装备失败: '+e.message) }
-    return
-  }
+  // Equipment item handling - now in useItem flow
   if (usingItem.value?.id === 'skill_scroll') {
     const learned = parseArray(digimon.learnedSkills)
     if (learned.length >= 10) { alert('技能已满 (10个)'); return }
