@@ -17,7 +17,7 @@ export async function initNewPlayer() { await api.updateUser(userId(), { gold: 5
 
 export async function createShopEgg(fieldId) {
   let resultTemplateId
-  if (fieldId) { const pool = digimonTemplates.filter(t => t.fields && t.fields.includes(fieldId)); resultTemplateId = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)].id : rollDigimon() }
+  if (fieldId) { const pool = digimonTemplates.filter(t => t.stage === '成长期' && t.fields && t.fields.includes(fieldId)); resultTemplateId = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)].id : rollDigimon() }
   else { resultTemplateId = rollDigimon() }
   const hatchSeconds = 10
   const hatchReadyAt = new Date(Date.now() + hatchSeconds * 1000).toISOString()

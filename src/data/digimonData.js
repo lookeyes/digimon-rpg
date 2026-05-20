@@ -317,7 +317,7 @@ export const devEggTypes = eggTypes.map(e => ({...e, hatchSeconds:10}))
 
 export function getTemplate(id) { return digimonTemplates.find(d => d.id === id) }
 export function getEggType() { return eggTypes[0] }
-export function rollDigimon() { return digimonTemplates[Math.floor(Math.random() * digimonTemplates.length)].id }
+export function rollDigimon() { const child = digimonTemplates.filter(t => t.stage === '成长期'); return child[Math.floor(Math.random() * child.length)].id }
 
 export function calcStats(template, level, allocated, natureId) {
   const nature = getNature(natureId)
