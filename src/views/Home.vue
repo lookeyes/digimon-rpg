@@ -50,6 +50,10 @@
         <div class="menu-icon">🔄</div>
         <div class="menu-label">兑换</div>
       </router-link>
+      <router-link to="/boss" class="menu-item">
+        <div class="menu-icon">👑</div>
+        <div class="menu-label">BOSS</div>
+      </router-link>
     </div>
 
     <div style="margin-top: 20px; text-align: center;">

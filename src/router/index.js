@@ -83,6 +83,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/boss',
+    name: 'Boss',
+    component: () => import('../views/Boss.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/backpack',
     name: 'Backpack',
     component: () => import('../views/Backpack.vue'),
