@@ -98,34 +98,27 @@
 
     <!-- 数码兽详情弹窗 -->
     <div v-if="showDigiModal&&digiDetail" class="modal-overlay" @click.self="showDigiModal=false">
-      <div class="dex-modal" style="text-align:left;max-width:400px;">
+      <div class="dex-modal" style="text-align:left;max-width:400px;max-height:85vh;">
         <h3>{{ digiDetail.nickname||'???' }}</h3>
         <div class="dex-modal-stats">
-          <div class="dex-stat-row"><span>模板ID</span><span>{{ digiDetail.templateId }}</span></div>
-          <div class="dex-stat-row"><span>等级</span><span>Lv.{{ digiDetail.level||1 }}</span></div>
-          <div class="dex-stat-row"><span>EXP</span><span>{{ digiDetail.exp||0 }}</span></div>
-          <div class="dex-stat-row"><span>性格</span><span>{{ natureLabel(digiDetail.nature) }}</span></div>
-          <div class="dex-stat-row"><span>自由点</span><span>{{ digiDetail.freePoints||0 }}</span></div>
-          <div class="dex-stat-row"><span>已学技能</span><span>{{ countSkills(digiDetail) }}/10</span></div>
-          <div class="dex-stat-row"><span>isTeam</span><span>{{ digiDetail.isTeam?'是':'否' }}</span></div>
-        </div>
-        <div v-if="digiStats" class="dex-modal-stats" style="margin-top:8px;">
-          <div style="font-size:12px;font-weight:700;margin-bottom:4px;">能力值</div>
-          <div class="dex-stat-row" v-for="(v,k) in digiStats" :key="k"><span>{{ statName(k) }}</span><span>{{ v }}</span></div>
-        </div>
-        <div style="margin-top:8px;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:4px;">修改等级</div>
-          <div style="display:flex;gap:6px;">
-            <input v-model.number="editLevel" type="number" class="alloc-input" style="flex:1;width:auto;" :placeholder="String(digiDetail.level)">
-            <button class="btn btn-primary btn-sm" @click="updateDigiLevel">保存</button>
+          <div v-for="f in editFields" :key="f.key" class="dex-stat-row">
+            <span>{{ f.label }}</span>
+            <span v-if="f.key==='templateId'">{{ digiDetail.templateId }}</span>
+            <span v-else-if="f.key==='nature'">{{ natureLabel(digiDetail.nature) }}</span>
+            <span v-else-if="f.key==='isTeam'">{{ digiDetail.isTeam?'是':'否' }}</span>
+            <span v-else>{{ digiDetail[f.key]||0 }}</span>
           </div>
         </div>
-        <div style="margin-top:8px;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:4px;">修改模板</div>
-          <div style="display:flex;gap:6px;">
-            <input v-model="editTemplateId" placeholder="模板ID" class="alloc-input" style="flex:1;width:auto;">
-            <button class="btn btn-primary btn-sm" @click="updateDigiTemplate">保存</button>
+        <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">✏️ 编辑</div>
+          <div v-for="f in editFields" :key="'e'+f.key" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <span style="font-size:11px;min-width:40px;color:var(--text-dim);">{{ f.label }}</span>
+            <input v-if="f.key==='isTeam'" v-model="editData.isTeam" type="checkbox" style="width:auto;">
+            <input v-else-if="f.key==='nature'" v-model="editData.nature" class="alloc-input" style="flex:1;width:auto;padding:4px 6px;font-size:12px;" :placeholder="digiDetail.nature">
+            <input v-else-if="f.type==='number'" v-model.number="editData[f.key]" type="number" class="alloc-input" style="flex:1;width:auto;padding:4px 6px;font-size:12px;" :placeholder="String(digiDetail[f.key]||0)">
+            <input v-else v-model="editData[f.key]" class="alloc-input" style="flex:1;width:auto;padding:4px 6px;font-size:12px;" :placeholder="String(digiDetail[f.key]||'')">
           </div>
+          <button class="btn btn-primary btn-sm" style="margin-top:6px;" @click="saveDigiAll">💾 全部保存</button>
         </div>
         <button class="btn btn-danger btn-sm" style="margin-top:10px;" @click="deleteDigi(digiDetail.objectId)">删除此数码兽</button>
         <button class="btn btn-secondary btn-sm" style="margin-top:6px;margin-left:6px;" @click="showDigiModal=false">关闭</button>
@@ -157,7 +150,13 @@ const digiSearch = ref(''), digimons = ref([])
 const stats = ref({players:0,digimons:0,totalBits:0})
 
 const showPlayerModal = ref(false), playerDetail = ref(null), editGold = ref(0)
-const showDigiModal = ref(false), digiDetail = ref(null), editLevel = ref(0), editTemplateId = ref('')
+const showDigiModal = ref(false), digiDetail = ref(null)
+const editFields = [
+  {key:'nickname',label:'昵称',type:'text'},{key:'templateId',label:'模板',type:'text'},{key:'level',label:'等级',type:'number'},
+  {key:'exp',label:'EXP',type:'number'},{key:'nature',label:'性格',type:'text'},{key:'freePoints',label:'自由点',type:'number'},
+  {key:'isTeam',label:'编队'}
+]
+const editData = ref({})
 
 const filteredPlayers = computed(() => {
   if (!playerSearch.value) return players.value
@@ -240,22 +239,31 @@ async function openPlayer(p) {
 }
 
 async function openDigi(d) {
-  digiDetail.value = d; editLevel.value = d.level||1; editTemplateId.value = d.templateId||''; showDigiModal.value = true
+  digiDetail.value = d
+  editData.value = { nickname:d.nickname||'', templateId:d.templateId||'', level:d.level||1, exp:d.exp||0, nature:d.nature||'', freePoints:d.freePoints||0, isTeam:d.isTeam||false }
+  showDigiModal.value = true
+}
+
+async function saveDigiAll() {
+  if (!digiDetail.value) return
+  const data = {}
+  for (const f of editFields) {
+    const v = editData.value[f.key]
+    if (v !== undefined && v !== String(digiDetail.value[f.key]||'') && v !== digiDetail.value[f.key]) {
+      data[f.key] = f.type==='number' ? Number(v) : v
+    }
+  }
+  if (Object.keys(data).length === 0) { alert('没有修改'); return }
+  try {
+    await api.update('PlayerDigimon', digiDetail.value.objectId, data, null, true)
+    for (const [k,v] of Object.entries(data)) { digiDetail.value[k] = v }
+    alert('已保存: '+Object.keys(data).join(', '))
+  } catch(e) { alert('保存失败: '+e.message) }
 }
 
 async function updatePlayerGold() {
   if (!playerDetail.value) return
   try { await api.updateUser(playerDetail.value.objectId, { gold: editGold.value }, true); playerDetail.value.gold = editGold.value; alert('已更新') } catch(e) { alert('更新失败: '+e.message) }
-}
-
-async function updateDigiLevel() {
-  if (!digiDetail.value || !editLevel.value) return
-  try { await api.update('PlayerDigimon', digiDetail.value.objectId, { level: editLevel.value }, null, true); digiDetail.value.level = editLevel.value; alert('已更新') } catch(e) { alert('更新失败: '+e.message) }
-}
-
-async function updateDigiTemplate() {
-  if (!digiDetail.value || !editTemplateId.value) return
-  try { await api.update('PlayerDigimon', digiDetail.value.objectId, { templateId: editTemplateId.value }, null, true); digiDetail.value.templateId = editTemplateId.value; alert('已更新') } catch(e) { alert('更新失败: '+e.message) }
 }
 
 async function deleteDigi(id) {
