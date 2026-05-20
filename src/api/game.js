@@ -31,7 +31,7 @@ export async function hatchEgg(eggId) {
   if (!egg) throw new Error('蛋不存在'); if (egg.status === 'hatched') throw new Error('已孵化过了')
   const now = new Date().toISOString()
   await api.update('PlayerEgg', eggId, { status:'hatched' })
-  const template = getTemplate(egg.resultTemplateId); const nature = randomNature(); const abilitiesList = template.abilities || []
+  let template = getTemplate(egg.resultTemplateId); if (!template || template.stage !== '成长期') { template = getTemplate(rollDigimon()) }; const nature = randomNature(); const abilitiesList = template.abilities || []
   const talents = rollTwoTalents(); const initialSkills = getUniqueSkillsForDigimon(egg.resultTemplateId, 1); const initialSkillIds = initialSkills.map(s => s.id)
   const level = 1; const allocated = { hp:0, mp:0, atk:0, def:0, spAtk:0, spDef:0, spd:0 }
   const stats = calcStats(template, level, allocated, nature.id)
