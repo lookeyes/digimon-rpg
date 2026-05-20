@@ -13,7 +13,7 @@
       </div>
       <div class="stat-card">
         <div class="value">{{ coinCount }}</div>
-        <div class="label">金币</div>
+        <div class="label">Bits</div>
       </div>
     </div>
 

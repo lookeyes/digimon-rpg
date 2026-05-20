@@ -47,7 +47,7 @@ export async function saveBattleResults(playerTeam, enemyTeam, rewards) {
     }
   } catch(e) { console.error('更新掉落失败:', e) }
   // Update gold
-  try { let goldMult = 1.0; for (const digimon of allDigimons) { let t = digimon.talents; if (typeof t === 'string') try { t = JSON.parse(t) } catch(e) { t = [] }; goldMult = Math.max(goldMult, getGoldMultiplier(t||[], digimon.level||1)) }; const user = await api.getUser(userId()); await api.updateUser(userId(), { gold: (user.gold||0) + Math.floor(rewards.gold*goldMult) }) } catch(e) { console.error('更新金币失败:', e) }
+  try { let goldMult = 1.0; for (const digimon of allDigimons) { let t = digimon.talents; if (typeof t === 'string') try { t = JSON.parse(t) } catch(e) { t = [] }; goldMult = Math.max(goldMult, getGoldMultiplier(t||[], digimon.level||1)) }; const user = await api.getUser(userId()); await api.updateUser(userId(), { gold: (user.gold||0) + Math.floor(rewards.gold*goldMult) }) } catch(e) { console.error('更新Bits失败:', e) }
   results._drops = drops
   return results
 }
