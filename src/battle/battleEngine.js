@@ -16,8 +16,23 @@ export class BattleEngine {
     const avgLv=Math.floor(playerDigimons.reduce((s,d)=>s+d.level,0)/Math.max(1,playerDigimons.length))
     const lvMin=this.levelMin||1; const lvMax=this.levelMax||10
     const enemyLevel=Math.max(lvMin,Math.min(lvMax,avgLv+Math.floor(Math.random()*3)-1))
+    // 根据玩家队伍最高阶段决定敌人阶段
+    const stageOrder = { '成长期':0, '成熟期':1, '完全体':2, '究极体':3 }
+    let maxStage = 0
+    for (const d of playerDigimons) {
+      const tpl = getTemplate(d.templateId)
+      if (tpl && stageOrder[tpl.stage] !== undefined) maxStage = Math.max(maxStage, stageOrder[tpl.stage])
+      if (d.evolvedTo) { try { const evo = typeof d.evolvedTo === 'string' ? JSON.parse(d.evolvedTo) : d.evolvedTo; if (evo?.stage && stageOrder[evo.stage] !== undefined) maxStage = Math.max(maxStage, stageOrder[evo.stage]) } catch(e) {} }
+      if (d.nickname) { const nt = digimonTemplates.find(t => t.name === d.nickname); if (nt && stageOrder[nt.stage] !== undefined) maxStage = Math.max(maxStage, stageOrder[nt.stage]) }
+    }
+    const targetStage = maxStage // 敌人阶段匹配玩家最高阶段
     for (let i=0;i<3;i++) {
-      let tpl; if(this.mapFieldId){const fd=digimonTemplates.filter(t=>t.fields&&t.fields.includes(this.mapFieldId)); tpl=fd.length>0?fd[Math.floor(Math.random()*fd.length)]:digimonTemplates[Math.floor(Math.random()*digimonTemplates.length)]} else {tpl=digimonTemplates[Math.floor(Math.random()*digimonTemplates.length)]}
+      let pool = digimonTemplates
+      if (this.mapFieldId) { pool = pool.filter(t => t.fields && t.fields.includes(this.mapFieldId)) }
+      // 筛选匹配阶段的敌人
+      const stagePool = pool.filter(t => stageOrder[t.stage] === targetStage)
+      const finalPool = stagePool.length > 0 ? stagePool : pool.filter(t => stageOrder[t.stage] === targetStage - 1 || stageOrder[t.stage] === targetStage)
+      let tpl = finalPool.length > 0 ? finalPool[Math.floor(Math.random() * finalPool.length)] : pool[Math.floor(Math.random() * pool.length)]
       const enemySkills=this._getEnemySkills(tpl,enemyLevel); const stats=this._genEnemyStats(tpl,enemyLevel)
       const fd={objectId:'enemy_'+i,templateId:tpl.id,nickname:tpl.name,level:enemyLevel,stats,equippedSkills:enemySkills.map(s=>s.id),exp:0,fieldExp:{}}
       this.enemyTeam.push(new BattleEntity(fd,tpl,enemySkills,false))
