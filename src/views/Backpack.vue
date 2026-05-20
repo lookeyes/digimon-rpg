@@ -64,7 +64,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getPlayerInfo, getMyDigimons } from '../api/game.js'
-import { getTemplate, getRandomCommonSkills } from '../data/digimonData.js'
+import { getTemplate, getRandomCommonSkills, randomNature, calcStats } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import { getCurrentUser } from '../api/auth.js'
 import api from '../api/bmob.js'
@@ -97,8 +97,8 @@ const allItems = [
   { id: 'elixir', name: '圣灵药', icon: '🍀', desc: '战斗中回复一只数码兽25%HP和25%MP', price: 500, battleUse: true, bind: false, category: 'battle' },
 
   // 绑定物品 (bind)
-  { id: 'free_reset', name: '洗点券', icon: '🔁', desc: '重置一只数码兽已分配的自由点', price: 0, battleUse: false, bind: true, category: 'bind' },
-  { id: 'nature_mint', name: '性格薄荷', icon: '🌿', desc: '随机改变一只数码兽的性格', price: 0, battleUse: false, bind: true, category: 'bind' },
+  { id: 'free_reset', name: '洗点券', icon: '🔁', desc: '重置一只数码兽已分配的自由点', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
+  { id: 'nature_mint', name: '性格薄荷', icon: '🌿', desc: '随机改变一只数码兽的性格', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
   { id: 'evo_stone', name: '进化石', icon: '💠', desc: '帮助符合条件的数码兽突破进化', price: 0, battleUse: false, bind: true, category: 'bind' },
   { id: 'name_tag', name: '改名卡', icon: '🏷️', desc: '为一只数码兽重新起名', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
 
@@ -142,12 +142,12 @@ function getCategoryCount(cat) {
 
 async function useItem(item) {
   const all = await getMyDigimons()
+  if (all.length === 0) { alert('没有数码兽'); return }
   if (item.id === 'skill_scroll') {
     digimonList.value = all.filter(d => (parseArray(d.learnedSkills)).length < 10)
     if (digimonList.value.length === 0) { alert('所有数码兽技能已满'); return }
-  } else if (item.id === 'name_tag') {
+  } else {
     digimonList.value = all
-    if (digimonList.value.length === 0) { alert('没有数码兽'); return }
   }
   usingItem.value = item; showUseModal.value = true
 }
@@ -182,6 +182,33 @@ async function applyItem(digimon) {
     await saveItems()
     showUseModal.value = false
     alert('改名成功！')
+  } else if (usingItem.value?.id === 'free_reset') {
+    let allocated = {}
+    try { allocated = typeof digimon.allocatedPoints === 'string' ? JSON.parse(digimon.allocatedPoints) : (digimon.allocatedPoints || {}) } catch(e) {}
+    const total = (allocated.hp||0)+(allocated.mp||0)+(allocated.atk||0)+(allocated.def||0)+(allocated.spAtk||0)+(allocated.spDef||0)+(allocated.spd||0)
+    if (total === 0) { alert('没有已分配的自由点'); return }
+    const newFree = (digimon.freePoints||0) + total
+    await api.update('PlayerDigimon', digimon.objectId, { freePoints: newFree, allocatedPoints: JSON.stringify({hp:0,mp:0,atk:0,def:0,spAtk:0,spDef:0,spd:0}) })
+    playerItems.value['free_reset'] = Math.max(0, (playerItems.value['free_reset']||0)-1)
+    await saveItems()
+    showUseModal.value = false
+    alert(`已重置，返还 ${total} 点！`)
+  } else if (usingItem.value?.id === 'nature_mint') {
+    let newNature = randomNature()
+    while (newNature.id === digimon.nature) { newNature = randomNature() }
+    const tpl = getTemplate(digimon.templateId)
+    if (tpl) {
+      let allocated = {}
+      try { allocated = typeof digimon.allocatedPoints === 'string' ? JSON.parse(digimon.allocatedPoints) : (digimon.allocatedPoints || {}) } catch(e) {}
+      const stats = calcStats(tpl, digimon.level||1, allocated, newNature.id)
+      await api.update('PlayerDigimon', digimon.objectId, { nature: newNature.id, stats: JSON.stringify({hp:stats.maxHp,maxHp:stats.maxHp,mp:stats.maxMp,maxMp:stats.maxMp,atk:stats.atk,def:stats.def,spAtk:stats.spAtk,spDef:stats.spDef,spd:stats.spd}) })
+    } else {
+      await api.update('PlayerDigimon', digimon.objectId, { nature: newNature.id })
+    }
+    playerItems.value['nature_mint'] = Math.max(0, (playerItems.value['nature_mint']||0)-1)
+    await saveItems()
+    showUseModal.value = false
+    alert(`性格变为 ${newNature.name}！`)
   }
 }
 
