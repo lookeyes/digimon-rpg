@@ -101,7 +101,7 @@ async function startBoss(boss) {
   const all = await getMyDigimons(); const team = ids.map(id => all.find(d => d.objectId === id)).filter(Boolean)
   if (team.length === 0) { phase.value = 'noTeam'; return }
   currentBoss.value = boss; finishing.value = false; logLines.value = []
-  let cardBonus=null;try{const info2=await getPlayerInfo();let cards={};if(info2.cards)cards=typeof info2.cards==='string'?JSON.parse(info2.cards):info2.cards;const total=Object.values(cards).reduce((s,v)=>s+v,0);cardBonus=getCardBonus(total)}catch(e){}
+  let cardBonus=null;try{const info2=await getPlayerInfo();let cards={};if(info2.cards)cards=typeof info2.cards==='string'?JSON.parse(info2.cards):info2.cards;cardBonus=getCardBonus(cards)}catch(e){}
   engine.value = new BattleEngine(team, onLog, onState, null, boss.level - 2, boss.level, cardBonus)
   // Override enemy with single boss
   const tpl = getTemplate(boss.templateId) || digimonTemplates.find(t => t.stage === '究极体')

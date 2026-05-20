@@ -379,16 +379,25 @@ export const fieldDropTable = {
   unknown:{item:'virus_antibody',name:'病毒抗体',icon:'💉',rate:0.25}
 }
 
-// 卡牌加成系统
-export const cardMilestones = [
-  {count:1,label:'收集1张',bonus:{hp:2}},{count:5,label:'收集5张',bonus:{hp:5}},
-  {count:10,label:'收集10张',bonus:{hp:8}},{count:50,label:'收集50张',bonus:{hp:12}},
-  {count:100,label:'收集100张',bonus:{hp:15}}
-]
-export function getCardBonus(cardCount) {
-  let bonus = {hp:0}
-  for (const m of cardMilestones) { if (cardCount >= m.count) { bonus = {...m.bonus} } }
+// 卡牌加成系统——每张卡给一种属性+1%（收集即生效，不同卡累加）
+export const cardMilestones = [{count:1,label:'收集1张'}]
+export function getCardBonus(cards) {
+  const bonus = {}
+  for (const [cardId, count] of Object.entries(cards||{})) {
+    if (count < 1) continue
+    const tpl = digimonTemplates.find(t => t.id === cardId); if (!tpl) continue
+    const stat = cardBonusStat(tpl); if (!stat) continue
+    bonus[stat] = (bonus[stat]||0) + 1
+  }
   return bonus
+}
+function cardBonusStat(tpl) {
+  // 根据最高成长率决定加成属性
+  const g = {hp:tpl.growthHp,atk:tpl.growthAtk,def:tpl.growthDef,spAtk:tpl.growthSpAtk,spDef:tpl.growthSpDef,spd:tpl.growthSpd}
+  const tiers = {S:5,A:4,B:3,C:2,D:1}
+  let best = 'hp', bestVal = 0
+  for (const [k,v] of Object.entries(g)) { const tv = tiers[v]||0; if (tv > bestVal) { bestVal = tv; best = k } }
+  return best
 }
 
 // X病毒可感染列表

@@ -107,7 +107,7 @@ async function startBattle(mf,lm){
   if(team.length===0){phase.value='noTeam';return}
   const pa=engine.value?.autoBattle||false;lastMapField.value=mf;lastLevelMin.value=lm
   if(!autoContinue.value)battlesFought.value=0;finishing.value=false
-  let cardBonus=null;try{const info=await getPlayerInfo();let cards={};if(info.cards)cards=typeof info.cards==='string'?JSON.parse(info.cards):info.cards;const total=Object.values(cards).reduce((s,v)=>s+v,0);cardBonus=getCardBonus(total)}catch(e){}
+  let cardBonus=null;try{const info=await getPlayerInfo();let cards={};if(info.cards)cards=typeof info.cards==='string'?JSON.parse(info.cards):info.cards;cardBonus=getCardBonus(cards)}catch(e){}
   engine.value=new BattleEngine(team,onLog,onState,mf,lm,lm+9,cardBonus);engine.value.autoBattle=pa
   phase.value='battle';logLines.value=[];showItems.value=false;selectedItem.value=null;await loadPlayerItems();engine.value.start()
 }
