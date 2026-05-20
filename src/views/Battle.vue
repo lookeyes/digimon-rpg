@@ -1,8 +1,35 @@
 <template>
 <div class="battle-page">
   <template v-if="phase==='mapSelect'">
-    <div class="page"><button class="back-btn" @click="$router.back()">← 返回</button><div class="page-title"><span>选择</span>冒险地图</div>
-    <div class="map-list"><div class="map-card" style="border-color:#b44dff;" :class="{ expanded: expandedMap==='old_world' }" @click="expandedMap = expandedMap==='old_world' ? null : 'old_world'"><div class="map-header"><span class="map-emoji">☠️</span><div><div class="map-name">旧世界</div><div class="map-desc">被遗忘的远古战场，潜伏着X病毒...</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap==='old_world'?'收起':'展开' }}</span></div><div v-if="expandedMap==='old_world'" class="map-levels"><div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">⚠️ 1%概率使数码兽感染X病毒</div><div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle('old_world', lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div></div></div><div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id"><div class="map-header"><span class="map-emoji">{{ f.emoji }}</span><div><div class="map-name">{{ f.name }}</div><div class="map-desc">{{ f.desc }}</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap===f.id?'收起':'展开' }}</span></div><div v-if="expandedMap===f.id" class="map-levels"><div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">选择等级区间：</div><div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div></div></div></div></div><BottomNav/>
+    <div class="page">
+      <button class="back-btn" @click="$router.back()">← 返回</button>
+      <div class="page-title"><span>选择</span>冒险地图</div>
+      <div class="bp-tabs">
+        <button class="bp-tab" :class="{ active: mapTab==='normal' }" @click="mapTab='normal'">🌍 普通地图</button>
+        <button class="bp-tab" :class="{ active: mapTab==='special' }" @click="mapTab='special'">⚠️ 特殊地图</button>
+      </div>
+      <!-- 普通地图 -->
+      <div class="map-list" v-if="mapTab==='normal'">
+        <div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id">
+          <div class="map-header"><span class="map-emoji">{{ f.emoji }}</span><div><div class="map-name">{{ f.name }}</div><div class="map-desc">{{ f.desc }}</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap===f.id?'收起':'展开' }}</span></div>
+          <div v-if="expandedMap===f.id" class="map-levels">
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">选择等级区间：</div>
+            <div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div>
+          </div>
+        </div>
+      </div>
+      <!-- 特殊地图 -->
+      <div class="map-list" v-if="mapTab==='special'">
+        <div class="map-card" style="border-color:#b44dff;" :class="{ expanded: expandedMap==='old_world' }" @click="expandedMap = expandedMap==='old_world' ? null : 'old_world'">
+          <div class="map-header"><span class="map-emoji">☠️</span><div><div class="map-name">旧世界</div><div class="map-desc">被遗忘的远古战场，潜伏着X病毒...</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap==='old_world'?'收起':'展开' }}</span></div>
+          <div v-if="expandedMap==='old_world'" class="map-levels">
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">⚠️ 1%概率使数码兽感染X病毒</div>
+            <div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle('old_world', lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div>
+          </div>
+        </div>
+      </div>
+      <BottomNav/>
+    </div>
   </template>
 
   <div v-if="phase==='noTeam'" class="page" style="text-align:center;"><button class="back-btn" @click="phase='mapSelect'">← 返回</button><div class="placeholder-page"><div class="icon">⚔️</div><h3>没有可出战的数码宝贝</h3><p>请先在数码宝贝页面编队</p><button class="btn btn-primary" style="width:auto;margin-top:12px;" @click="$router.push('/digimon')">去编队</button></div></div>
@@ -39,7 +66,7 @@ import { STATUS_ICONS } from '../battle/battleEntity.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const router = useRouter()
-const phase=ref('mapSelect'),expandedMap=ref(null),autoContinue=ref(false),winStreak=ref(0),battleLimit=ref(5),battlesFought=ref(0),finishing=ref(false)
+const phase=ref('mapSelect'),expandedMap=ref(null),mapTab=ref('normal'),autoContinue=ref(false),winStreak=ref(0),battleLimit=ref(5),battlesFought=ref(0),finishing=ref(false)
 const engine=ref(null),targeting=ref(false),selectedSkill=ref(null),selectedItem=ref(null),showItems=ref(false),playerItems=ref({}),logLines=ref([])
 const won=ref(false),rewards=ref({gold:0,expPer:0,fieldExp:{}}),levelUps=ref([]),drops=ref([]),playerMaxLv=ref(1),lastMapField=ref(null),lastLevelMin=ref(1)
 
