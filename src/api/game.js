@@ -106,6 +106,8 @@ export async function evolveDigimon(digimonId, evolutionIndex) {
         let learned = parseArray(digimon.learnedSkills); const oldSkills = getUniqueSkillsForDigimon(digimon.templateId, 100, currentName||undefined); const oldIds = new Set(oldSkills.map(s=>s.id)); learned = learned.filter(id => !oldIds.has(id)); for (const s of getUniqueSkillsForDigimon(xTpl.id, digimon.level, xName)) { if (!learned.includes(s.id)) learned.push(s.id) }
         await api.update('PlayerDigimon', digimonId, { templateId:xTpl.id, nickname:xName, xVirus:false, stats:JSON.stringify({hp:stats.maxHp,maxHp:stats.maxHp,mp:stats.maxMp,maxMp:stats.maxMp,atk:stats.atk,def:stats.def,spAtk:stats.spAtk,spDef:stats.spDef,spd:stats.spd}), learnedSkills:JSON.stringify(learned), evolvedTo:null })
         throw new Error('🧬 获得X抗体！进化为 '+xName+'！')
+      } else {
+        await api.update('PlayerDigimon', digimonId, { xVirus: false })
       }
     }
   }
