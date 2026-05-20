@@ -89,6 +89,59 @@
       </div>
     </div>
 
+    <div class="about-section">
+      <div class="about-section-title">🎒 装备系统</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">每只数码兽有2个装备槽——🏅徽章和📟暴龙机。装备从宝箱开出（兑换页获取），可在背包或详情页穿戴。</p>
+      <div class="about-cards">
+        <div class="about-card"><div class="about-card-icon">🏅</div><div class="about-card-title">10种徽章</div><div class="about-card-desc">勇气/友情/知识/诚实/纯真/希望/爱情/光明/温柔/奇迹。随机百分比加成（2%~30%），可在详情页洗练（10000Bits）。</div></div>
+        <div class="about-card"><div class="about-card-icon">📟</div><div class="about-card-title">5种暴龙机</div><div class="about-card-desc">初代/D3/方舟/扫描器/装载器。1~3项属性百分比加成（5%~20%），支持锁定洗练（每锁消耗翻倍）。</div></div>
+        <div class="about-card"><div class="about-card-icon">🎁</div><div class="about-card-title">装备宝箱</div><div class="about-card-desc">兑换页用材料兑换，开启50%概率获得徽章或暴龙机，直接放入背包。</div></div>
+        <div class="about-card"><div class="about-card-icon">🔁</div><div class="about-card-title">洗练系统</div><div class="about-card-desc">徽章洗练10000Bits；暴龙机5000Bits起，锁定属性每项消耗翻倍，保留想要的属性。</div></div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-section-title">🃏 卡牌系统</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">战斗打败敌人有1%概率掉落对应数码兽的卡牌。收集卡牌可激活全局属性加成。</p>
+      <div class="about-stats-table">
+        <div class="about-stat-row"><span>掉落率</span><span>每只敌人1%概率掉落其卡牌</span></div>
+        <div class="about-stat-row"><span>加成属性</span><span>每张卡根据数码兽最高成长率决定加成属性</span></div>
+        <div class="about-stat-row"><span>分档加成</span><span>1张+0.5% / 5张+1% / 10张+2% / 100张+3%</span></div>
+        <div class="about-stat-row"><span>累加规则</span><span>不同数码兽卡牌加成累加，战斗中实时生效</span></div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-section-title">☠️ X病毒·旧世界</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">战斗地图的特殊区域——旧世界隐藏着X病毒，冒险中可能感染并触发进化变异。</p>
+      <div class="about-stats-table">
+        <div class="about-stat-row"><span>感染条件</span><span>旧世界战斗胜利后，编队中每只可感染数码兽1%概率</span></div>
+        <div class="about-stat-row"><span>可感染数码兽</span><span>亚古兽/暴龙兽/机械暴龙兽/战斗暴龙兽 + 加布兽线</span></div>
+        <div class="about-stat-row"><span>进化触发</span><span>满足进化条件时50%概率获得X抗体(大幅增强)，50%概率死亡</span></div>
+        <div class="about-stat-row"><span>X抗体效果</span><span>名字加X后缀，种族值提升，保留原特性</span></div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-section-title">👑 BOSS挑战</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">挑战6只究极体BOSS，1v3高强度战斗，胜利获得丰厚奖励。</p>
+      <div class="about-stats-table">
+        <div class="about-stat-row"><span>BOSS数量</span><span>6只究极体（黑暗战斗暴龙兽/究极天使兽/红莲骑士兽等）</span></div>
+        <div class="about-stat-row"><span>BOSS强度</span><span>HP×2.5~3.0，全属性×1.3~1.5</span></div>
+        <div class="about-stat-row"><span>奖励</span><span>3000Bits + 双倍EXP + 保底3~5个材料</span></div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="about-section-title">🔄 材料兑换</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">战斗掉落的领域材料可在兑换页交换稀有道具。</p>
+      <div class="about-stats-table">
+        <div class="about-stat-row"><span>可兑换</span><span>技能卷轴/性格薄荷/洗点券/改名卡/装备宝箱/5000Bits</span></div>
+        <div class="about-stat-row"><span>掉落率</span><span>每只敌人每个领域30%概率掉落对应材料</span></div>
+        <div class="about-stat-row"><span>额外</span><span>8%概率额外掉落技能卷轴</span></div>
+      </div>
+    </div>
+
     <BottomNav/>
   </div>
 </template>
