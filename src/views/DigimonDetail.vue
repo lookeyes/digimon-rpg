@@ -154,8 +154,16 @@ const badgeData = computed(() => equipData.value?.badge||null)
 const digiviceData = computed(() => equipData.value?.digivice||null)
 function statLabel(s) { return {hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',healBonus:'治疗加成',resist:'抗性',crit:'暴击率',all:'全属性',mp:'MP'}[s]||s }
 async function saveEquip(eq) { const d = digimon.value; if(!d)return; let s = d.stats; try { s = typeof s === 'string' ? JSON.parse(s) : (s||{}) } catch(e) { s = {} }; s._equip = eq; const newStats = JSON.stringify(s); await api.update('PlayerDigimon', d.objectId, { stats: newStats }); d.stats = newStats }
-async function unequipBadge() { const eq = {...equipData.value}; delete eq.badge; await saveEquip(eq) }
-async function unequipDigivice() { const eq = {...equipData.value}; delete eq.digivice; await saveEquip(eq) }
+async function returnGearToBag(gear, isBadge) {
+  try { const info = await getPlayerInfo(); let items = {}
+    try { items = typeof info.items === 'string' ? JSON.parse(info.items) : (info.items||{}) } catch(e) {}
+    const prefix = isBadge ? 'eqb_' : 'eqd_'; let idx = 0; while (items[prefix+idx] !== undefined) idx++
+    items[prefix+idx] = JSON.stringify(gear)
+    await api.updateUser(info.objectId, { items: JSON.stringify(items) }, true)
+  } catch(e) { alert('归还失败: '+e.message) }
+}
+async function unequipBadge() { const eq = {...equipData.value}; const gear = eq.badge; delete eq.badge; await saveEquip(eq); if(gear) await returnGearToBag(gear, true) }
+async function unequipDigivice() { const eq = {...equipData.value}; const gear = eq.digivice; delete eq.digivice; await saveEquip(eq); if(gear) await returnGearToBag(gear, false) }
 async function reforgeDigivice() { if(!digimon.value||!digiviceData.value)return; if(!confirm('洗练将重新随机属性值，确定吗？'))return; const newDv = rerollDigivice(digiviceData.value); await saveEquip({...equipData.value, digivice:newDv}) }
 const talentLabels={white:'普通',blue:'稀有',purple:'史诗',red:'传说'}
 const talentList=computed(()=>{if(!digimon.value?.talents)return[];let arr=digimon.value.talents;if(typeof arr==='string'){try{arr=JSON.parse(arr)}catch(e){return[]}};return arr.map(t=>({...t,color:talentColors[t.rarity]||'#888',rarityLabel:talentLabels[t.rarity]||t.rarity}))})
