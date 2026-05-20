@@ -20,7 +20,7 @@
       <div v-for="s in statBars" :key="s.key" class="detail-stat-row"><span class="stat-icon">{{ s.icon }}</span><span class="stat-name">{{ s.label }}</span><div class="stat-bar-wrap"><div class="stat-bar" :style="{ width:s.percent+'%', background:s.color }"></div></div><span class="stat-num">{{ s.display }}</span></div>
     </div>
 
-    <div class="detail-section"><h4>🎒 装备</h4><div class="equip-slots"><div class="equip-slot" :class="{empty:!badgeData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">🏅 徽章</div><template v-if="badgeData"><div style="font-size:13px;font-weight:700;">{{ badgeData.icon }} {{ badgeData.name }}</div><div style="font-size:11px;color:var(--accent);">{{ statLabel(badgeData.stat) }}+{{ badgeData.value }}%</div><button class="btn btn-danger btn-sm" @click="unequipBadge">卸下</button></template><div v-else><div style="font-size:12px;color:var(--text-dim);">空</div><button class="btn btn-primary btn-sm" style="margin-top:4px;" @click="openEquipPicker('badge')">装备</button></div></div><div class="equip-slot" :class="{empty:!digiviceData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">📟 暴龙机</div><template v-if="digiviceData"><div style="font-size:13px;font-weight:700;">{{ digiviceData.icon }} {{ digiviceData.name }}</div><div style="font-size:11px;color:var(--accent);"><span v-for="(v,k) in digiviceData.stats" :key="k">{{ statLabel(k) }}+{{ v }}% </span></div><button class="btn btn-primary btn-sm" @click="reforgeDigivice">🔁 洗练</button><button class="btn btn-danger btn-sm" @click="unequipDigivice">卸下</button></template><div v-else><div style="font-size:12px;color:var(--text-dim);">空</div><button class="btn btn-primary btn-sm" style="margin-top:4px;" @click="openEquipPicker('digivice')">装备</button></div></div></div>
+    <div class="detail-section"><h4>🎒 装备</h4><div class="equip-slots"><div class="equip-slot" :class="{empty:!badgeData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">🏅 徽章</div><template v-if="badgeData"><div style="font-size:13px;font-weight:700;">{{ badgeData.icon }} {{ badgeData.name }}</div><div style="font-size:11px;color:var(--accent);">{{ statLabel(badgeData.stat) }}+{{ badgeData.value }}%</div><button class="btn btn-primary btn-sm" @click="reforgeBadge">🔁 洗练 10000Bits</button><button class="btn btn-danger btn-sm" @click="unequipBadge">卸下</button></template><div v-else><div style="font-size:12px;color:var(--text-dim);">空</div><button class="btn btn-primary btn-sm" style="margin-top:4px;" @click="openEquipPicker('badge')">装备</button></div></div><div class="equip-slot" :class="{empty:!digiviceData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">📟 暴龙机</div><template v-if="digiviceData"><div style="font-size:13px;font-weight:700;">{{ digiviceData.icon }} {{ digiviceData.name }}</div><div style="font-size:11px;color:var(--accent);"><span v-for="(v,k) in digiviceData.stats" :key="k">{{ statLabel(k) }}+{{ v }}% </span></div><button class="btn btn-primary btn-sm" @click="openReforgeLock">🔁 洗练</button><button class="btn btn-danger btn-sm" @click="unequipDigivice">卸下</button></template><div v-else><div style="font-size:12px;color:var(--text-dim);">空</div><button class="btn btn-primary btn-sm" style="margin-top:4px;" @click="openEquipPicker('digivice')">装备</button></div></div></div>
 
 <!-- 装备选择弹窗 -->
 <div v-if="showEquipPicker" class="modal-overlay" @click.self="showEquipPicker=false">
@@ -32,6 +32,26 @@
       <div style="font-size:11px;color:var(--accent);">{{ g.desc }}</div>
     </div>
     <button class="btn btn-secondary btn-sm" style="margin-top:10px;" @click="showEquipPicker=false">取消</button>
+  </div>
+</div>
+
+<!-- 洗练锁定弹窗 -->
+<div v-if="showReforgeLock" class="modal-overlay" @click.self="showReforgeLock=false">
+  <div class="dex-modal" style="text-align:left;">
+    <h3>🔁 暴龙机洗练</h3>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">勾选属性将在洗练时保留（每锁1项消耗翻倍）</p>
+    <div v-if="digiviceData" style="margin-bottom:10px;">
+      <div v-for="(v,k) in digiviceData.stats" :key="k" class="lock-row" @click="toggleLock(k)">
+        <span :style="{color:reforgeLocks[k]?'var(--accent)':'var(--text-dim)'}">{{ reforgeLocks[k]?'🔒':'🔓' }}</span>
+        <span>{{ statLabel(k) }}+{{ v }}%</span>
+        <span v-if="reforgeLocks[k]" style="font-size:10px;color:var(--accent);">保留</span>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;">💰 消耗: {{ reforgeCost.toLocaleString() }} Bits</div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-primary btn-sm" @click="doReforgeLocked">确认洗练</button>
+      <button class="btn btn-secondary btn-sm" @click="showReforgeLock=false">取消</button>
+    </div>
   </div>
 </div></div>
 <div class="detail-section" v-if="digimon.xVirus" style="border:1px solid #b44dff;background:rgba(180,77,255,0.08);border-radius:8px;padding:10px;"><h4 style="color:#b44dff;">⚠️ X病毒感染</h4><span style="font-size:12px;color:var(--text-dim);">这只数码兽已感染X病毒。下次进化时有50%几率获得X抗体大幅增强，也有50%几率死亡。</span></div>
@@ -91,8 +111,8 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { getDigimonDetail, allocatePoints, equipSkill, unequipSkill, forgetSkill, evolveDigimon, getPlayerInfo } from '../api/game.js'
-import { getTemplate, getField, getNature, getAbility, getSkill, isUniqueSkill, getEvolutionOptions, calcStats, applyTalents, fields, rerollDigivice } from '../data/digimonData.js'
+import { getDigimonDetail, allocatePoints, equipSkill, unequipSkill, forgetSkill, evolveDigimon, getPlayerInfo, spendGold } from '../api/game.js'
+import { getTemplate, getField, getNature, getAbility, getSkill, isUniqueSkill, getEvolutionOptions, calcStats, applyTalents, fields, rerollDigivice, rerollBadge } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import api from '../api/bmob.js'
 import BottomNav from '../components/BottomNav.vue'
@@ -164,7 +184,21 @@ async function returnGearToBag(gear, isBadge) {
 }
 async function unequipBadge() { const eq = {...equipData.value}; const gear = eq.badge; delete eq.badge; await saveEquip(eq); if(gear) await returnGearToBag(gear, true) }
 async function unequipDigivice() { const eq = {...equipData.value}; const gear = eq.digivice; delete eq.digivice; await saveEquip(eq); if(gear) await returnGearToBag(gear, false) }
-async function reforgeDigivice() { if(!digimon.value||!digiviceData.value)return; if(!confirm('洗练将重新随机属性值，确定吗？'))return; const newDv = rerollDigivice(digiviceData.value); await saveEquip({...equipData.value, digivice:newDv}) }
+async function reforgeBadge() { if(!digimon.value||!badgeData.value)return; if(!confirm('徽章洗练消耗10000Bits，确定吗？'))return; try{await spendGold(10000);const newBadge=rerollBadge(badgeData.value);await saveEquip({...equipData.value,badge:newBadge})}catch(e){alert(e.message)} }
+
+const showReforgeLock=ref(false); const reforgeLocks=ref({})
+function openReforgeLock(){ reforgeLocks.value={}; showReforgeLock.value=true }
+function toggleLock(k){ reforgeLocks.value={...reforgeLocks.value,[k]:!reforgeLocks.value[k]} }
+const reforgeCost=computed(()=>{const locks=Object.values(reforgeLocks.value).filter(Boolean).length;return 5000*Math.pow(2,locks)})
+async function doReforgeLocked(){
+  if(!digimon.value||!digiviceData.value)return
+  try{await spendGold(reforgeCost.value);const locks=reforgeLocks.value;const oldDv=digiviceData.value
+    const newDv=rerollDigivice(oldDv)
+    if(Object.values(locks).some(Boolean)){const kept={};for(const[k,v]of Object.entries(oldDv.stats)){if(locks[k])kept[k]=v}
+      for(const[k,v]of Object.entries(newDv.stats)){if(!kept[k])kept[k]=v};newDv.stats=kept}
+    await saveEquip({...equipData.value,digivice:newDv});showReforgeLock.value=false
+  }catch(e){alert(e.message)}
+}
 const talentLabels={white:'普通',blue:'稀有',purple:'史诗',red:'传说'}
 const talentList=computed(()=>{if(!digimon.value?.talents)return[];let arr=digimon.value.talents;if(typeof arr==='string'){try{arr=JSON.parse(arr)}catch(e){return[]}};return arr.map(t=>({...t,color:talentColors[t.rarity]||'#888',rarityLabel:talentLabels[t.rarity]||t.rarity}))})
 function showTalent(t,i){return i===0||(digimon.value?.level||1)>=10}

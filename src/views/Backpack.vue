@@ -95,7 +95,8 @@
         <p style="font-size:13px;color:var(--accent);margin-bottom:12px;">{{ gearDetail.desc }}</p>
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
           <button class="btn btn-primary btn-md" @click="doEquipGear">⚔️ 装备</button>
-          <button v-if="!gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeGear">🔁 洗练</button>
+          <button v-if="gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeBadgeBag">🔁 洗练 10000Bits</button>
+          <button v-if="!gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeGear">🔁 洗练 5000Bits</button>
           <button class="btn btn-danger btn-md" @click="doDiscardGear">🗑️ 丢弃</button>
         </div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;" @click="showGearModal=false">关闭</button>
@@ -108,7 +109,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getPlayerInfo, getMyDigimons } from '../api/game.js'
+import { getPlayerInfo, getMyDigimons, spendGold } from '../api/game.js'
 import { getTemplate, getRandomCommonSkills, randomNature, calcStats, rollBadge, rollDigivice, badgeDefs, digiviceDefs, rerollBadge, rerollDigivice } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import { getCurrentUser } from '../api/auth.js'
@@ -238,13 +239,19 @@ async function doEquipGear() {
   const all = await getMyDigimons(); if(all.length===0){alert('没有数码兽');return}
   digimonList.value = all; usingItem.value = {id: gearItemKey.value}; showUseModal.value = true
 }
+async function doReforgeBadgeBag() {
+  if(!gearDetail.value||!gearDetail.value.isBadge)return
+  try{await spendGold(10000);const newBadge=rerollBadge(gearDetail.value.gear)
+    playerItems.value[gearItemKey.value]=JSON.stringify(newBadge);await saveItems()
+    gearDetail.value={isBadge:true,gear:newBadge,desc:`${sl(newBadge.stat)}+${newBadge.value}%`}
+    alert('洗练完成！')}catch(e){alert(e.message)}
+}
 async function doReforgeGear() {
   if(!gearDetail.value||gearDetail.value.isBadge)return
-  const newDv = rerollDigivice(gearDetail.value.gear)
-  playerItems.value[gearItemKey.value] = JSON.stringify(newDv)
-  await saveItems()
-  gearDetail.value = {isBadge:false, gear:newDv, desc: Object.entries(newDv.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' ')}
-  alert('洗练完成！')
+  try{await spendGold(5000);const newDv=rerollDigivice(gearDetail.value.gear)
+    playerItems.value[gearItemKey.value]=JSON.stringify(newDv);await saveItems()
+    gearDetail.value={isBadge:false,gear:newDv,desc:Object.entries(newDv.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' ')}
+    alert('洗练完成！')}catch(e){alert(e.message)}
 }
 async function doDiscardGear() {
   if(!confirm('确定丢弃这个装备吗？'))return
