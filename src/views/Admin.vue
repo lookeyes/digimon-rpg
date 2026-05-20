@@ -176,7 +176,7 @@ import api from '../api/bmob.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const authed = ref(false), adminPwd = ref(''), authError = ref('')
-const PWD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'
+const PWD_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'
 async function doAuth() {
   const enc = new TextEncoder().encode(adminPwd.value)
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc))).map(b => b.toString(16).padStart(2,'0')).join('')
