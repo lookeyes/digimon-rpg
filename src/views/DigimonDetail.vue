@@ -20,7 +20,8 @@
       <div v-for="s in statBars" :key="s.key" class="detail-stat-row"><span class="stat-icon">{{ s.icon }}</span><span class="stat-name">{{ s.label }}</span><div class="stat-bar-wrap"><div class="stat-bar" :style="{ width:s.percent+'%', background:s.color }"></div></div><span class="stat-num">{{ s.display }}</span></div>
     </div>
 
-    <div class="detail-section" v-if="natureInfo"><h4>性格</h4><span class="tag" style="background:#ffd70033;border:1px solid #ffd700;color:#ffd700;">🌟 {{ natureInfo.name }}</span><span style="font-size:13px;color:var(--text-dim);">{{ natureInfo.desc }}</span></div>
+    <div class="detail-section" v-if="digimon.xVirus" style="border:1px solid #b44dff;background:rgba(180,77,255,0.08);border-radius:8px;padding:10px;"><h4 style="color:#b44dff;">⚠️ X病毒感染</h4><span style="font-size:12px;color:var(--text-dim);">这只数码兽已感染X病毒。下次进化时有50%几率获得X抗体大幅增强，也有50%几率死亡。</span></div>
+<div class="detail-section" v-if="natureInfo"><h4>性格</h4><span class="tag" style="background:#ffd70033;border:1px solid #ffd700;color:#ffd700;">🌟 {{ natureInfo.name }}</span><span style="font-size:13px;color:var(--text-dim);">{{ natureInfo.desc }}</span></div>
     <div class="detail-section" v-if="abilityList.length>0"><h4>特性</h4><div v-for="a in abilityList" :key="a.id"><span class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);">⚡{{ a.name }}</span><span style="font-size:12px;color:var(--text-dim);">{{ a.desc }}</span></div></div>
     <div class="detail-section" v-if="talentList.length>0"><h4>天赋</h4><div v-for="(t,i) in talentList" :key="t.id"><span class="tag" :style="{ background:t.color+'22',border:'1px solid '+t.color,color:t.color }">{{ t.rarityLabel }} {{ t.name }}</span><span v-if="showTalent(t,i)" style="font-size:12px;color:var(--text-dim);">{{ t.desc }}</span><span v-else style="font-size:12px;color:var(--text-dim);">🔒 Lv.10解锁</span></div></div>
 

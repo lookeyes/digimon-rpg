@@ -2,7 +2,7 @@
 <div class="battle-page">
   <template v-if="phase==='mapSelect'">
     <div class="page"><button class="back-btn" @click="$router.back()">← 返回</button><div class="page-title"><span>选择</span>冒险地图</div>
-    <div class="map-list"><div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id"><div class="map-header"><span class="map-emoji">{{ f.emoji }}</span><div><div class="map-name">{{ f.name }}</div><div class="map-desc">{{ f.desc }}</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap===f.id?'收起':'展开' }}</span></div><div v-if="expandedMap===f.id" class="map-levels"><div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">选择等级区间：</div><div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div></div></div></div></div><BottomNav/>
+    <div class="map-list"><div class="map-card" style="border-color:#b44dff;" :class="{ expanded: expandedMap==='old_world' }" @click="expandedMap = expandedMap==='old_world' ? null : 'old_world'"><div class="map-header"><span class="map-emoji">☠️</span><div><div class="map-name">旧世界</div><div class="map-desc">被遗忘的远古战场，潜伏着X病毒...</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap==='old_world'?'收起':'展开' }}</span></div><div v-if="expandedMap==='old_world'" class="map-levels"><div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">⚠️ 1%概率使数码兽感染X病毒</div><div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle('old_world', lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div></div></div><div v-for="f in fields" :key="f.id" class="map-card" :style="{ borderColor: f.color }" :class="{ expanded: expandedMap===f.id }" @click="expandedMap = expandedMap===f.id ? null : f.id"><div class="map-header"><span class="map-emoji">{{ f.emoji }}</span><div><div class="map-name">{{ f.name }}</div><div class="map-desc">{{ f.desc }}</div></div><span style="color:var(--text-dim);font-size:12px;">{{ expandedMap===f.id?'收起':'展开' }}</span></div><div v-if="expandedMap===f.id" class="map-levels"><div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">选择等级区间：</div><div class="level-grid"><button v-for="lv in getLevelBrackets()" :key="lv" class="level-btn" @click.stop="startBattle(f.id, lv)">Lv.{{ lv }}-{{ lv+9 }}</button></div></div></div></div></div><BottomNav/>
   </template>
 
   <div v-if="phase==='noTeam'" class="page" style="text-align:center;"><button class="back-btn" @click="phase='mapSelect'">← 返回</button><div class="placeholder-page"><div class="icon">⚔️</div><h3>没有可出战的数码宝贝</h3><p>请先在数码宝贝页面编队</p><button class="btn btn-primary" style="width:auto;margin-top:12px;" @click="$router.push('/digimon')">去编队</button></div></div>
@@ -34,7 +34,7 @@ import { getMyDigimons, getPlayerInfo } from '../api/game.js'
 import { getCurrentUser } from '../api/auth.js'
 import api from '../api/bmob.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
-import { fields } from '../data/digimonData.js'
+import { fields, xVirusTargets, getTemplate } from '../data/digimonData.js'
 import { STATUS_ICONS } from '../battle/battleEntity.js'
 import BottomNav from '../components/BottomNav.vue'
 
@@ -73,7 +73,7 @@ function fleeBattle(){engine.value.fled=true;engine.value.phase='ended';engine.v
 async function finishBattle(){
   if(finishing.value)return;finishing.value=true
   const w=engine.value.playerAlive.length>0&&!engine.value.fled;won.value=w
-  if(w){winStreak.value++;const r=engine.value.getRewards();rewards.value=r;drops.value=[];try{const rs=await saveBattleResults(engine.value.playerTeam,engine.value.enemyTeam,r);levelUps.value=rs.filter(r=>r.levelUps.length>0).map(r=>`${r.name}→Lv.${r.level}`);drops.value=rs._drops||[]}catch(e){console.error(e)}}
+  if(w){winStreak.value++;const r=engine.value.getRewards();rewards.value=r;drops.value=[];try{const rs=await saveBattleResults(engine.value.playerTeam,engine.value.enemyTeam,r);levelUps.value=rs.filter(r=>r.levelUps.length>0).map(r=>`${r.name}→Lv.${r.level}`);drops.value=rs._drops||[]}catch(e){console.error(e)};if(lastMapField.value==='old_world'){try{await checkXVirus()}catch(e){console.error(e)}}}
   else{winStreak.value=0}
   if(w&&autoContinue.value&&battlesFought.value<battleLimit.value){battlesFought.value++;phase.value='result';setTimeout(()=>{if(autoContinue.value&&battlesFought.value<battleLimit.value)startBattle(lastMapField.value,lastLevelMin.value)},1500);return}
   if(battlesFought.value>=battleLimit.value)autoContinue.value=false
@@ -87,6 +87,13 @@ const itemDefs={heal_hp:{icon:'💚',name:'回复药剂',effect:'healHp',pct:40}
 const usableItems=computed(()=>Object.entries(playerItems.value).filter(([id,c])=>c>0&&itemDefs[id]).map(([id,c])=>({id,...itemDefs[id],count:c})))
 function selectItem(it){if(!it||it.count<=0)return;selectedItem.value=it;targeting.value=true;showItems.value=false}
 async function useItemOn(it,target){if(!it||(!target.alive&&it.id!=='revive'))return;if(!target.alive&&it.id==='revive'){targeting.value=false;const d=itemDefs[it.id];if(!d)return;playerItems.value[it.id]=Math.max(0,(playerItems.value[it.id]||0)-1);target.alive=true;target.hp=Math.floor(target.maxHp*d.pct/100);target.mp=Math.floor(target.maxMp*0.2);engine.value.log(`${target.name} 复活了！回复${d.pct}%HP！`);engine.value.allEntities.push(target);engine.value._sortTurnOrder();try{const u=getCurrentUser();if(u)await api.updateUser(u.objectId,{items:JSON.stringify(playerItems.value)})}catch(e){};selectedItem.value=null;engine.value._nextTurn();engine.value.onStateChange();return};targeting.value=false;const d=itemDefs[it.id];if(!d)return;playerItems.value[it.id]=Math.max(0,(playerItems.value[it.id]||0)-1);if(d.effect==='healHp'){const amt=Math.floor(target.maxHp*d.pct/100);target.heal(amt);engine.value.log(`${target.name} 回复了 ${amt} HP！`)}else if(d.effect==='healMp'){const amt=Math.floor(target.maxMp*d.pct/100);target.restoreMp(amt);engine.value.log(`${target.name} 回复了 ${amt} MP！`)}else if(d.effect==='elixir'){const hpAmt=Math.floor(target.maxHp*d.pct/100);const mpAmt=Math.floor(target.maxMp*d.pct/100);target.heal(hpAmt);target.restoreMp(mpAmt);engine.value.log(`${target.name} 回复了 ${hpAmt} HP 和 ${mpAmt} MP！`)}else if(d.effect==='cure'&&target.status===d.status){target.status=null;engine.value.log(`${target.name} 的异常状态被治愈了！`)}else if(d.effect==='cureAll'){target.status=null;engine.value.log(`${target.name} 的全部异常状态被治愈了！`)};try{const u=getCurrentUser();if(u)await api.updateUser(u.objectId,{items:JSON.stringify(playerItems.value)})}catch(e){};selectedItem.value=null;engine.value._nextTurn();engine.value.onStateChange()}
+async function checkXVirus(){
+  for(const e of engine.value.playerTeam){
+    const digi = await api.query('PlayerDigimon',{objectId:e.objectId}); const d = (digi.results||[])[0]; if(!d||d.xVirus) continue
+    const tpl = getTemplate(d.templateId); const name = d.nickname||tpl?.name||''
+    if(xVirusTargets.includes(name)&&Math.random()<0.01){await api.update('PlayerDigimon',d.objectId,{xVirus:true});engine.value.log(`⚠️ ${e.name} 感染了X病毒！`)}
+  }
+}
 async function loadPlayerItems(){try{const info=await getPlayerInfo();let i={};if(info.items)i=typeof info.items==='string'?JSON.parse(info.items):info.items;playerItems.value=i}catch(e){}}
 onMounted(async()=>{try{const all=await getMyDigimons();if(all.length>0)playerMaxLv.value=Math.max(...all.map(d=>d.level))}catch(e){}})
 </script>

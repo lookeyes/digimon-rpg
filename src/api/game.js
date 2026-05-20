@@ -90,6 +90,23 @@ export async function evolveDigimon(digimonId, evolutionIndex) {
   const currentName = digimon.nickname || ''; const chain = evoChains[currentName] || tpl?.evolutionTree
   if (!chain || chain.length === 0) throw new Error('无法进化'); const target = chain[evolutionIndex]
   if (!target) throw new Error('进化路线不存在')
+  // X病毒判定
+  if (digimon.xVirus) {
+    if (Math.random() < 0.5) {
+      await api.delete('PlayerDigimon', digimonId)
+      throw new Error('💀 X病毒发作！数码兽死亡了...')
+    } else {
+      const xName = target.name + 'X'
+      const xTpl = digimonTemplates.find(t => t.name === xName)
+      if (xTpl) {
+        let allocated = {}; try { allocated = typeof digimon.allocatedPoints === 'string' ? JSON.parse(digimon.allocatedPoints) : (digimon.allocatedPoints || {}) } catch(e) {}
+        const stats = calcStats(xTpl, digimon.level, allocated, digimon.nature)
+        let learned = parseArray(digimon.learnedSkills); const oldSkills = getUniqueSkillsForDigimon(digimon.templateId, 100, currentName||undefined); const oldIds = new Set(oldSkills.map(s=>s.id)); learned = learned.filter(id => !oldIds.has(id)); for (const s of getUniqueSkillsForDigimon(xTpl.id, digimon.level, xName)) { if (!learned.includes(s.id)) learned.push(s.id) }
+        await api.update('PlayerDigimon', digimonId, { templateId:xTpl.id, nickname:xName, xVirus:false, stats:JSON.stringify({hp:stats.maxHp,maxHp:stats.maxHp,mp:stats.maxMp,maxMp:stats.maxMp,atk:stats.atk,def:stats.def,spAtk:stats.spAtk,spDef:stats.spDef,spd:stats.spd}), learnedSkills:JSON.stringify(learned), evolvedTo:null })
+        throw new Error('🧬 获得X抗体！进化为 '+xName+'！')
+      }
+    }
+  }
   if (target.method === 'level' && digimon.level < target.condition) throw new Error(`需要达到Lv.${target.condition}`)
   if (target.fieldExpRequired) { let fexp = digimon.fieldExp; if (typeof fexp === 'string') try { fexp = JSON.parse(fexp) } catch(e) { fexp = {} }; for (const [fid, req] of Object.entries(target.fieldExpRequired)) { if ((fexp[fid]||0) < req) throw new Error(`领域经验不足`) } }
   let allocated = {}; try { allocated = typeof digimon.allocatedPoints === 'string' ? JSON.parse(digimon.allocatedPoints) : (digimon.allocatedPoints || {}) } catch(e) { allocated = {} }

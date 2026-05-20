@@ -130,7 +130,17 @@ export const digimonTemplates = [
   { id:'ophanimon',name:'神圣天女兽',stage:'究极体',fields:['virus_busters','nature_spirits'],type:'疫苗',description:'座天使型数码宝贝，手持圣晶结界守护秩序，必杀技是「伊甸针刺」。',baseHp:178,baseMp:92,baseAtk:68,baseDef:55,baseSpAtk:92,baseSpDef:68,baseSpd:66,growthHp:'C',growthMp:'S',growthAtk:'B',growthDef:'B',growthSpAtk:'S',growthSpDef:'A',growthSpd:'S',abilities:['saint_scent','first_strike_heart'] },
   { id:'dukemon',name:'红莲骑士兽',stage:'究极体',fields:['dragons_roar','virus_busters'],type:'病毒',description:'圣骑士型数码宝贝，手持圣枪的红色骑士，必杀技是「圣枪古拉姆」。',baseHp:210,baseMp:72,baseAtk:100,baseDef:72,baseSpAtk:62,baseSpDef:58,baseSpd:42,growthHp:'S',growthMp:'C',growthAtk:'S',growthDef:'A',growthSpAtk:'C',growthSpDef:'C',growthSpd:'B',abilities:['dragon_pressure','berserker'] },
   { id:'venom_vamdemon',name:'怨毒吸血魔兽',stage:'究极体',fields:['dark_area','nightmare_soldiers'],type:'病毒',description:'魔兽型数码宝贝，吸收无数数据进化而成的恐怖魔王，必杀技是「剧毒之血」。',baseHp:168,baseMp:85,baseAtk:88,baseDef:48,baseSpAtk:80,baseSpDef:52,baseSpd:64,growthHp:'C',growthMp:'A',growthAtk:'S',growthDef:'D',growthSpAtk:'S',growthSpDef:'C',growthSpd:'S',abilities:['prankster','shadow_walk'] },
-  { id:'rosemon',name:'蔷薇兽',stage:'究极体',fields:['jungle_troopers','virus_busters'],type:'数据',description:'妖精型数码宝贝，美丽而危险的蔷薇女王，必杀技是「荆棘之鞭」。',baseHp:185,baseMp:88,baseAtk:58,baseDef:66,baseSpAtk:96,baseSpDef:78,baseSpd:46,growthHp:'A',growthMp:'S',growthAtk:'C',growthDef:'A',growthSpAtk:'S',growthSpDef:'S',growthSpd:'C',abilities:['natural_harmony','seedling_regen'] }
+  { id:'rosemon',name:'蔷薇兽',stage:'究极体',fields:['jungle_troopers','virus_busters'],type:'数据',description:'妖精型数码宝贝，美丽而危险的蔷薇女王，必杀技是「荆棘之鞭」。',baseHp:185,baseMp:88,baseAtk:58,baseDef:66,baseSpAtk:96,baseSpDef:78,baseSpd:46,growthHp:'A',growthMp:'S',growthAtk:'C',growthDef:'A',growthSpAtk:'S',growthSpDef:'S',growthSpd:'C',abilities:['natural_harmony','seedling_regen'] },
+
+  // X抗体形态 (8只)
+  { id:'agumon_x',name:'亚古兽X',stage:'成长期',fields:['nature_spirits','dragons_roar'],type:'疫苗',description:'感染X病毒后获得X抗体的亚古兽，力量大幅增强。',baseHp:132,baseMp:48,baseAtk:38,baseDef:26,baseSpAtk:32,baseSpDef:24,baseSpd:24,growthHp:'A',growthMp:'B',growthAtk:'S',growthDef:'A',growthSpAtk:'A',growthSpDef:'B',growthSpd:'A',abilities:['dragon_will','flame_power','berserker'] },
+  { id:'greymon_x',name:'暴龙兽X',stage:'成熟期',fields:['dragons_roar','nature_spirits'],type:'疫苗',description:'X抗体的暴龙兽，头角更加巨大锋利，超级火焰威力倍增。',baseHp:175,baseMp:66,baseAtk:62,baseDef:40,baseSpAtk:48,baseSpDef:36,baseSpd:36,growthHp:'S',growthMp:'B',growthAtk:'S',growthDef:'A',growthSpAtk:'A',growthSpDef:'B',growthSpd:'A',abilities:['dragon_will','flame_power','berserker'] },
+  { id:'metal_greymon_x',name:'机械暴龙兽X',stage:'完全体',fields:['dragons_roar','metal_empire'],type:'疫苗',description:'X抗体的机械暴龙兽，机械化装甲进一步强化，究极破坏炮可连发。',baseHp:215,baseMp:80,baseAtk:88,baseDef:64,baseSpAtk:74,baseSpDef:52,baseSpd:46,growthHp:'S',growthMp:'B',growthAtk:'S',growthDef:'S',growthSpAtk:'S',growthSpDef:'A',growthSpd:'A',abilities:['dragon_will','flame_power','berserker'] },
+  { id:'war_greymon_x',name:'战斗暴龙兽X',stage:'究极体',fields:['dragons_roar','virus_busters'],type:'疫苗',description:'X抗体的战斗暴龙兽，龙族克星之力达到极致，盖亚之力毁灭一切。',baseHp:255,baseMp:95,baseAtk:118,baseDef:86,baseSpAtk:98,baseSpDef:74,baseSpd:64,growthHp:'S',growthMp:'A',growthAtk:'S',growthDef:'S',growthSpAtk:'S',growthSpDef:'A',growthSpd:'S',abilities:['dragon_will','flame_power','berserker'] },
+  { id:'gabumon_x',name:'加布兽X',stage:'成长期',fields:['deep_savers','dragons_roar'],type:'数据',description:'X抗体的加布兽，毛皮更加厚实，爆炎火焰弹温度更高。',baseHp:120,baseMp:54,baseAtk:28,baseDef:24,baseSpAtk:40,baseSpDef:26,baseSpd:28,growthHp:'A',growthMp:'A',growthAtk:'B',growthDef:'B',growthSpAtk:'S',growthSpDef:'A',growthSpd:'S',abilities:['fur_armor','frost_breath','shadow_walk'] },
+  { id:'garurumon_x',name:'加鲁鲁兽X',stage:'成熟期',fields:['deep_savers','nature_spirits'],type:'数据',description:'X抗体的加鲁鲁兽，青白毛皮闪耀金属光泽，妖狐火焰冻结万物。',baseHp:156,baseMp:72,baseAtk:52,baseDef:36,baseSpAtk:62,baseSpDef:40,baseSpd:44,growthHp:'A',growthMp:'A',growthAtk:'A',growthDef:'B',growthSpAtk:'S',growthSpDef:'A',growthSpd:'S',abilities:['fur_armor','frost_breath','shadow_walk'] },
+  { id:'were_garurumon_x',name:'兽人加鲁鲁X',stage:'完全体',fields:['deep_savers','nature_spirits'],type:'数据',description:'X抗体的兽人加鲁鲁，狼人战士的敏捷与力量达到巅峰。',baseHp:195,baseMp:86,baseAtk:84,baseDef:52,baseSpAtk:76,baseSpDef:54,baseSpd:62,growthHp:'A',growthMp:'A',growthAtk:'S',growthDef:'A',growthSpAtk:'S',growthSpDef:'A',growthSpd:'S',abilities:['fur_armor','frost_breath','shadow_walk'] },
+  { id:'metal_garurumon_x',name:'钢铁加鲁鲁X',stage:'究极体',fields:['deep_savers','metal_empire'],type:'数据',description:'X抗体的钢铁加鲁鲁，全身武器系统升级，绝对冷冻气可冻结时空。',baseHp:235,baseMp:100,baseAtk:98,baseDef:74,baseSpAtk:106,baseSpDef:70,baseSpd:74,growthHp:'S',growthMp:'S',growthAtk:'S',growthDef:'A',growthSpAtk:'S',growthSpDef:'A',growthSpd:'S',abilities:['fur_armor','frost_breath','shadow_walk'] }
 ]
 
 export const uniqueSkills = {
@@ -360,6 +370,10 @@ export const fieldDropTable = {
   nightmare_soldiers:{item:'nightmare_core',name:'噩梦核心',icon:'👁️',rate:0.3},
   unknown:{item:'virus_antibody',name:'病毒抗体',icon:'💉',rate:0.25}
 }
+
+// X病毒可感染列表
+export const xVirusTargets = ['亚古兽','暴龙兽','机械暴龙兽','战斗暴龙兽','加布兽','加鲁鲁兽','兽人加鲁鲁','钢铁加鲁鲁']
+export function getXAntibodyName(name) { return name + 'X' }
 
 export function rollDrops(enemyTeam) {
   const drops = []
