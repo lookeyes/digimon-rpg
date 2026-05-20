@@ -22,7 +22,7 @@
           <div class="card-img" v-html="card.sprite"></div>
           <div class="card-info">
             <div class="card-name-text">{{ card.name }}</div>
-            <div class="card-stage-text">{{ card.stage }} · {{ statName(cardBonusMap[card.id]) }}+{{ getCardPct(card.count) }}%</div>
+            <div class="card-stage-text">{{ card.stage }} · {{ statName(cardBonusMap[card.id]) }}+{{ getCardPct(card.count).toFixed(1) }}%</div>
           <div class="card-tier">{{ cardTier(card.count) }}</div>
           </div>
           <div class="card-count" :class="{ has: card.count>0 }">×{{ card.count }}</div>

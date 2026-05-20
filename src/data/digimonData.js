@@ -380,7 +380,7 @@ export const fieldDropTable = {
 }
 
 // 卡牌加成系统——每种卡按收集数量分档加成，不同卡累加
-export const cardMilestones = [{count:1,label:'1张',pct:1},{count:5,label:'5张',pct:2},{count:10,label:'10张',pct:3},{count:100,label:'100张',pct:5}]
+export const cardMilestones = [{count:1,label:'1张',pct:0.5},{count:5,label:'5张',pct:1},{count:10,label:'10张',pct:2},{count:100,label:'100张',pct:3}]
 export function getCardBonus(cards) {
   const bonus = {}
   for (const [cardId, count] of Object.entries(cards||{})) {
