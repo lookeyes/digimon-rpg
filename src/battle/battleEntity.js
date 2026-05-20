@@ -21,6 +21,13 @@ export class BattleEntity {
       this.spAtk = pct(this.spAtk,'spAtk'); this.spDef = pct(this.spDef,'spDef')
       this.spd = pct(this.spd,'spd')
     }
+    // 装备加成
+    if (isPlayer && digimon.equipment) {
+      try { const eq = typeof digimon.equipment === 'string' ? JSON.parse(digimon.equipment) : digimon.equipment
+        if (eq.badge) { const b = eq.badge; if (b.stat === 'all') { this.atk+=b.value; this.def+=b.value; this.spAtk+=b.value; this.spDef+=b.value; this.spd+=b.value } else if (b.stat === 'hp') { this.maxHp+=b.value; this.hp+=b.value } else if (b.stat === 'mp') { this.maxMp+=b.value; this.mp+=b.value } else if (this[b.stat] !== undefined) { this[b.stat] += b.value } }
+        if (eq.digivice) { const dv = eq.digivice; if (dv.stats) { for (const [k,v] of Object.entries(dv.stats)) { if (k==='hp') { this.maxHp+=v; this.hp+=v } else if (this[k] !== undefined) { this[k] += v } } } }
+      } catch(e) {}
+    }
     this.baseAtk = this.atk; this.baseDef = this.def; this.baseSpAtk = this.spAtk; this.baseSpDef = this.spDef; this.baseSpd = this.spd; this.baseAccuracy = 100
     this.stages = { atk:0, def:0, spAtk:0, spDef:0, spd:0, accuracy:0 }; this.status = null; this.statusTurns = 0; this.confusionTurns = 0
     this.skills = skills || []; this.alive = true

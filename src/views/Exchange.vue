@@ -69,7 +69,8 @@ const offers = [
   { id:'ex_mint', name:'性格薄荷', icon:'🌿', desc:'随机改变性格', materials:[{id:'dark_crystal',count:5},{id:'nightmare_core',count:5}], reward:{id:'nature_mint',count:1} },
   { id:'ex_reset', name:'洗点券', icon:'🔁', desc:'重置已分配自由点', materials:[{id:'metal_fragment',count:5},{id:'wind_essence',count:5}], reward:{id:'free_reset',count:1} },
   { id:'ex_name', name:'改名卡', icon:'🏷️', desc:'给数码兽改名', materials:[{id:'holy_feather',count:3},{id:'nature_orb',count:3},{id:'virus_antibody',count:3}], reward:{id:'name_tag',count:1} },
-  { id:'ex_bits', name:'Bits', icon:'💰', desc:'兑换5000Bits', materials:[{id:'dragon_scale',count:2},{id:'holy_feather',count:2},{id:'dark_crystal',count:2},{id:'nature_orb',count:2},{id:'metal_fragment',count:2}], reward:{id:'bits',count:5000} }
+  { id:'ex_bits', name:'Bits', icon:'💰', desc:'兑换5000Bits', materials:[{id:'dragon_scale',count:2},{id:'holy_feather',count:2},{id:'dark_crystal',count:2},{id:'nature_orb',count:2},{id:'metal_fragment',count:2}], reward:{id:'bits',count:5000} },
+  { id:'ex_chest', name:'装备宝箱', icon:'🎁', desc:'50%徽章/50%暴龙机', materials:[{id:'dragon_scale',count:4},{id:'dark_crystal',count:4},{id:'metal_fragment',count:4},{id:'wind_essence',count:4}], reward:{id:'equip_chest',count:1}, chest:true }
 ]
 
 const materialList = materials.map(m => ({...m, count: 0}))

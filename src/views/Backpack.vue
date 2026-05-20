@@ -64,7 +64,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getPlayerInfo, getMyDigimons } from '../api/game.js'
-import { getTemplate, getRandomCommonSkills, randomNature, calcStats } from '../data/digimonData.js'
+import { getTemplate, getRandomCommonSkills, randomNature, calcStats, rollBadge, rollDigivice, badgeDefs, digiviceDefs, rerollBadge, rerollDigivice } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import { getCurrentUser } from '../api/auth.js'
 import api from '../api/bmob.js'
@@ -101,6 +101,7 @@ const allItems = [
   { id: 'nature_mint', name: '性格薄荷', icon: '🌿', desc: '随机改变一只数码兽的性格', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
   { id: 'evo_stone', name: '进化石', icon: '💠', desc: '帮助符合条件的数码兽突破进化', price: 0, battleUse: false, bind: true, category: 'bind' },
   { id: 'name_tag', name: '改名卡', icon: '🏷️', desc: '为一只数码兽重新起名', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
+  { id: 'equip_chest', name: '装备宝箱', icon: '🎁', desc: '打开随机获得徽章或暴龙机，选数码兽装备', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
 
   // 可交易物品 (trade)
   { id: 'dragon_scale', name: '龙之鳞片', icon: '🐉', desc: '龙之咆哮领域数码兽掉落的稀有鳞片，可用于交易', price: 0, battleUse: false, bind: false, category: 'trade' },
@@ -151,6 +152,14 @@ async function useItem(item) {
   }
   usingItem.value = item; showUseModal.value = true
 }
+function getEquipDisplay(d) {
+  let eq = d.equipment; if (!eq) return '空'
+  if (typeof eq === 'string') try { eq = JSON.parse(eq) } catch(e) { return '空' }
+  const parts = []
+  if (eq.badge) parts.push(eq.badge.icon+' '+eq.badge.name)
+  if (eq.digivice) parts.push(eq.digivice.icon+' '+eq.digivice.name)
+  return parts.length>0 ? parts.join(' · ') : '空'
+}
 
 function parseArray(v) { if (!v) return []; if (typeof v === 'string') { try { return JSON.parse(v) } catch(e) { return [] } } return v }
 
@@ -174,6 +183,17 @@ async function applyItem(digimon) {
     await saveItems()
     showUseModal.value = false
     alert(`${digimon.nickname||getTplName(digimon.templateId)} 学会了 ${skill.name}！`)
+  } else if (usingItem.value?.id === 'equip_chest') {
+    const isBadge = Math.random() < 0.5
+    let eq = digimon.equipment
+    try { eq = typeof eq === 'string' ? JSON.parse(eq) : (eq || {}) } catch(e) { eq = {} }
+    if (isBadge) { eq.badge = rollBadge() } else { eq.digivice = rollDigivice() }
+    await api.update('PlayerDigimon', digimon.objectId, { equipment: JSON.stringify(eq) })
+    playerItems.value['equip_chest'] = Math.max(0, (playerItems.value['equip_chest']||0)-1)
+    await saveItems(); showUseModal.value = false
+    const gear = isBadge ? eq.badge : eq.digivice
+    const gearDesc = isBadge ? `${gear.name} ${gear.icon} ${gear.stat}+${gear.value}` : `${gear.name} ${gear.icon} ${Object.entries(gear.stats).map(([k,v])=>statLabel(k)+'+'+v).join(' ')}`
+    alert(`🎁 ${isBadge?'徽章':'暴龙机'}！\n${digimon.nickname||getTplName(digimon.templateId)} 获得 ${gearDesc}`)
   } else if (usingItem.value?.id === 'name_tag') {
     const name = prompt('请输入新名字：', digimon.nickname || getTplName(digimon.templateId))
     if (!name || name.trim() === '') return

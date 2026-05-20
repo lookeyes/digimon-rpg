@@ -1174,6 +1174,10 @@ body {
 .special-map{border-color:#b44dff!important;border-left-width:4px!important;background:linear-gradient(135deg,var(--bg-card),rgba(180,77,255,0.05));}
 .special-map:hover{border-color:#c77dff!important;}
 
+.equip-slots{display:flex;gap:8px;}
+.equip-slot{flex:1;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.equip-slot.empty{opacity:0.5;}
+
 .map-tabs{display:flex;gap:10px;margin-bottom:14px;}
 .map-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:12px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.2s;}
 .map-tab:hover{border-color:var(--accent);color:var(--text);}

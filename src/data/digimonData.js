@@ -402,6 +402,57 @@ function cardBonusStat(tpl) {
 }
 export function getCardPct(count) { let p = 0; for (const m of cardMilestones) { if (count >= m.count) p = m.pct }; return p }
 
+// 装备系统
+export const badgeDefs = [
+  {id:'courage',name:'勇气徽章',icon:'🦁',desc:'物理攻击力提升',stat:'atk',min:5,max:15},
+  {id:'friendship',name:'友情徽章',icon:'🤝',desc:'生命值上限提升',stat:'hp',min:10,max:30},
+  {id:'love',name:'爱情徽章',icon:'💕',desc:'受到治疗量提升',stat:'healBonus',min:10,max:25},
+  {id:'knowledge',name:'知识徽章',icon:'📚',desc:'特殊攻击力提升',stat:'spAtk',min:5,max:15},
+  {id:'sincerity',name:'诚实徽章',icon:'🛡️',desc:'物理防御力提升',stat:'def',min:5,max:15},
+  {id:'purity',name:'纯真徽章',icon:'🕊️',desc:'速度提升',stat:'spd',min:3,max:10},
+  {id:'hope',name:'希望徽章',icon:'⭐',desc:'全属性小幅提升',stat:'all',min:2,max:8},
+  {id:'light',name:'光明徽章',icon:'💡',desc:'异常状态抗性提升',stat:'resist',min:10,max:30},
+  {id:'kindness',name:'温柔徽章',icon:'🌸',desc:'MP上限提升',stat:'mp',min:8,max:20},
+  {id:'miracle',name:'奇迹徽章',icon:'✨',desc:'暴击率提升',stat:'crit',min:3,max:10}
+]
+export const digiviceDefs = [
+  {id:'d1',name:'初代暴龙机',icon:'📟',desc:'1项属性加成',stats:1,range:[3,12]},
+  {id:'d_ark',name:'数码方舟',icon:'🔮',desc:'1-2项属性加成',stats:2,range:[4,15]},
+  {id:'d3',name:'D3暴龙机',icon:'📱',desc:'2项属性加成',stats:2,range:[5,18]},
+  {id:'d_scan',name:'数码扫描器',icon:'🔍',desc:'2-3项属性加成',stats:3,range:[4,14]},
+  {id:'d_xros',name:'合体装载器',icon:'⚡',desc:'3项属性加成',stats:3,range:[6,20]}
+]
+export const equipStats = ['hp','atk','def','spAtk','spDef','spd']
+export function rollBadge() {
+  const def = badgeDefs[Math.floor(Math.random()*badgeDefs.length)]
+  const value = Math.floor(def.min + Math.random()*(def.max-def.min+1))
+  return {id:def.id,name:def.name,icon:def.icon,stat:def.stat,value}
+}
+export function rollDigivice() {
+  const def = digiviceDefs[Math.floor(Math.random()*digiviceDefs.length)]
+  const nStats = def.stats===1?1:def.stats===2?(Math.random()<0.5?1:2):(Math.random()<0.5?2:3)
+  const stats = {}; const used = new Set()
+  for(let i=0;i<nStats;i++){
+    let s; do{s=equipStats[Math.floor(Math.random()*equipStats.length)]}while(used.has(s))
+    used.add(s);stats[s]=Math.floor(def.range[0]+Math.random()*(def.range[1]-def.range[0]+1))
+  }
+  return {id:def.id,name:def.name,icon:def.icon,stats}
+}
+export function rerollBadge(badge) {
+  const def = badgeDefs.find(b=>b.id===badge.id); if(!def)return badge
+  return {...badge,value:Math.floor(def.min+Math.random()*(def.max-def.min+1))}
+}
+export function rerollDigivice(digivice) {
+  const def = digiviceDefs.find(d=>d.id===digivice.id); if(!def)return digivice
+  const nStats = def.stats===1?1:def.stats===2?(Math.random()<0.5?1:2):(Math.random()<0.5?2:3)
+  const stats = {}; const used = new Set()
+  for(let i=0;i<nStats;i++){
+    let s; do{s=equipStats[Math.floor(Math.random()*equipStats.length)]}while(used.has(s))
+    used.add(s);stats[s]=Math.floor(def.range[0]+Math.random()*(def.range[1]-def.range[0]+1))
+  }
+  return {...digivice,stats}
+}
+
 // X病毒可感染列表
 export const xVirusTargets = ['亚古兽','暴龙兽','机械暴龙兽','战斗暴龙兽','加布兽','加鲁鲁兽','兽人加鲁鲁','钢铁加鲁鲁']
 export function getXAntibodyName(name) { return name + 'X' }

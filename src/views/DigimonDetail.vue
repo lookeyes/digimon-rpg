@@ -20,7 +20,8 @@
       <div v-for="s in statBars" :key="s.key" class="detail-stat-row"><span class="stat-icon">{{ s.icon }}</span><span class="stat-name">{{ s.label }}</span><div class="stat-bar-wrap"><div class="stat-bar" :style="{ width:s.percent+'%', background:s.color }"></div></div><span class="stat-num">{{ s.display }}</span></div>
     </div>
 
-    <div class="detail-section" v-if="digimon.xVirus" style="border:1px solid #b44dff;background:rgba(180,77,255,0.08);border-radius:8px;padding:10px;"><h4 style="color:#b44dff;">⚠️ X病毒感染</h4><span style="font-size:12px;color:var(--text-dim);">这只数码兽已感染X病毒。下次进化时有50%几率获得X抗体大幅增强，也有50%几率死亡。</span></div>
+    <div class="detail-section"><h4>🎒 装备</h4><div class="equip-slots"><div class="equip-slot" :class="{empty:!badgeData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">🏅 徽章</div><template v-if="badgeData"><div style="font-size:13px;font-weight:700;">{{ badgeData.icon }} {{ badgeData.name }}</div><div style="font-size:11px;color:var(--accent);">{{ statLabel(badgeData.stat) }}+{{ badgeData.value }}</div><button class="btn btn-danger btn-sm" @click="unequipBadge">卸下</button></template><div v-else style="font-size:12px;color:var(--text-dim);">空</div></div><div class="equip-slot" :class="{empty:!digiviceData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">📟 暴龙机</div><template v-if="digiviceData"><div style="font-size:13px;font-weight:700;">{{ digiviceData.icon }} {{ digiviceData.name }}</div><div style="font-size:11px;color:var(--accent);"><span v-for="(v,k) in digiviceData.stats" :key="k">{{ statLabel(k) }}+{{ v }} </span></div><button class="btn btn-primary btn-sm" @click="reforgeDigivice">🔁 洗练</button><button class="btn btn-danger btn-sm" @click="unequipDigivice">卸下</button></template><div v-else style="font-size:12px;color:var(--text-dim);">空</div></div></div></div>
+<div class="detail-section" v-if="digimon.xVirus" style="border:1px solid #b44dff;background:rgba(180,77,255,0.08);border-radius:8px;padding:10px;"><h4 style="color:#b44dff;">⚠️ X病毒感染</h4><span style="font-size:12px;color:var(--text-dim);">这只数码兽已感染X病毒。下次进化时有50%几率获得X抗体大幅增强，也有50%几率死亡。</span></div>
 <div class="detail-section" v-if="natureInfo"><h4>性格</h4><span class="tag" style="background:#ffd70033;border:1px solid #ffd700;color:#ffd700;">🌟 {{ natureInfo.name }}</span><span style="font-size:13px;color:var(--text-dim);">{{ natureInfo.desc }}</span></div>
     <div class="detail-section" v-if="abilityList.length>0"><h4>特性</h4><div v-for="a in abilityList" :key="a.id"><span class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);">⚡{{ a.name }}</span><span style="font-size:12px;color:var(--text-dim);">{{ a.desc }}</span></div></div>
     <div class="detail-section" v-if="talentList.length>0"><h4>天赋</h4><div v-for="(t,i) in talentList" :key="t.id"><span class="tag" :style="{ background:t.color+'22',border:'1px solid '+t.color,color:t.color }">{{ t.rarityLabel }} {{ t.name }}</span><span v-if="showTalent(t,i)" style="font-size:12px;color:var(--text-dim);">{{ t.desc }}</span><span v-else style="font-size:12px;color:var(--text-dim);">🔒 Lv.10解锁</span></div></div>
@@ -78,7 +79,7 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getDigimonDetail, allocatePoints, equipSkill, unequipSkill, forgetSkill, evolveDigimon } from '../api/game.js'
-import { getTemplate, getField, getNature, getAbility, getSkill, isUniqueSkill, getEvolutionOptions, calcStats, applyTalents, fields } from '../data/digimonData.js'
+import { getTemplate, getField, getNature, getAbility, getSkill, isUniqueSkill, getEvolutionOptions, calcStats, applyTalents, fields, rerollDigivice } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import api from '../api/bmob.js'
 import BottomNav from '../components/BottomNav.vue'
@@ -106,6 +107,14 @@ const statBars=computed(()=>!digimon.value?[]:[{key:'hp',icon:statIcons.hp,label
 const natureInfo=computed(()=>{if(!digimon.value?.nature)return null;const n=getNature(digimon.value.nature);if(!n)return null;const sl={hp:'HP',mp:'MP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度'};const b=n.boost?`${sl[n.boost]||n.boost}+`:'';const r=n.reduce?`${sl[n.reduce]||n.reduce}−`:'';return{name:n.name,desc:b||r?(b+' / '+r):'均衡'}})
 const abilityList=computed(()=>{if(!digimon.value?.abilities)return[];let arr=digimon.value.abilities;if(typeof arr==='string'){try{arr=JSON.parse(arr)}catch(e){return[]}};return arr.map(id=>getAbility(id)).filter(Boolean)})
 const talentColors={white:'#aab',blue:'#4e9fff',purple:'#b44dff',red:'#e94560'}
+
+const equipData = computed(() => { const d = digimon.value; if (!d?.equipment) return {}; try { return typeof d.equipment === 'string' ? JSON.parse(d.equipment) : d.equipment } catch(e) { return {} } })
+const badgeData = computed(() => equipData.value?.badge||null)
+const digiviceData = computed(() => equipData.value?.digivice||null)
+function statLabel(s) { return {hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',healBonus:'治疗加成',resist:'抗性',crit:'暴击率',all:'全属性',mp:'MP'}[s]||s }
+async function unequipBadge() { if(!digimon.value)return; const eq = {...equipData.value}; delete eq.badge; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)}); digimon.value.equipment = JSON.stringify(eq) }
+async function unequipDigivice() { if(!digimon.value)return; const eq = {...equipData.value}; delete eq.digivice; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)}); digimon.value.equipment = JSON.stringify(eq) }
+async function reforgeDigivice() { if(!digimon.value||!digiviceData.value)return; if(!confirm('洗练将重新随机属性值，确定吗？'))return; const newDv = rerollDigivice(digiviceData.value); const eq = {...equipData.value, digivice:newDv}; await api.update('PlayerDigimon',digimon.value.objectId,{equipment:JSON.stringify(eq)}); digimon.value.equipment = JSON.stringify(eq) }
 const talentLabels={white:'普通',blue:'稀有',purple:'史诗',red:'传说'}
 const talentList=computed(()=>{if(!digimon.value?.talents)return[];let arr=digimon.value.talents;if(typeof arr==='string'){try{arr=JSON.parse(arr)}catch(e){return[]}};return arr.map(t=>({...t,color:talentColors[t.rarity]||'#888',rarityLabel:talentLabels[t.rarity]||t.rarity}))})
 function showTalent(t,i){return i===0||(digimon.value?.level||1)>=10}
