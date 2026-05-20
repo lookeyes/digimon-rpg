@@ -6,11 +6,14 @@
     </div>
 
     <!-- 分类标签 -->
-    <div class="bp-tabs">
-      <button v-for="cat in categories" :key="cat.key" class="bp-tab" :class="{ active: activeTab===cat.key }" @click="activeTab=cat.key">
-        {{ cat.icon }} {{ cat.label }}
-        <span class="bp-tab-count">{{ getCategoryCount(cat.key) }}</span>
-      </button>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+      <div class="bp-tabs" style="flex:1;margin-bottom:0;">
+        <button v-for="cat in categories" :key="cat.key" class="bp-tab" :class="{ active: activeTab===cat.key }" @click="activeTab=cat.key">
+          {{ cat.icon }} {{ cat.label }}
+          <span class="bp-tab-count">{{ getCategoryCount(cat.key) }}</span>
+        </button>
+      </div>
+      <button v-if="activeTab!=='equip'" class="btn btn-secondary btn-sm" style="flex-shrink:0;" @click="autoSort">📦 整理</button>
     </div>
 
     <!-- 物品列表 -->
@@ -34,6 +37,33 @@
           <div v-if="item.price" class="bp-item-price">💰 商城 {{ item.price }}G</div>
         </div>
         <div class="bp-item-count">×{{ item.count }}</div>
+      </div>
+    </div>
+
+    <!-- 装备总览 -->
+    <div v-if="activeTab==='equip'">
+      <button class="btn btn-secondary btn-sm" style="margin-bottom:10px;" @click="loadEquipData">刷新装备数据</button>
+      <div v-if="equipDigimons.length===0" style="text-align:center;padding:20px;color:var(--text-dim);">没有数码兽或点击刷新</div>
+      <div v-for="d in equipDigimons" :key="d.objectId" class="bp-equip-card">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div v-html="digiSprite(d)" style="width:40px;height:40px;"></div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">{{ d.nickname||d._tplName||'???' }}</div>
+            <div style="font-size:10px;color:var(--text-dim);">Lv.{{ d.level||1 }}</div>
+          </div>
+        </div>
+        <div class="equip-slots" style="margin-top:8px;">
+          <div class="equip-slot" :class="{empty:!d._badge}">
+            <div style="font-size:10px;color:var(--text-dim);">🏅 徽章</div>
+            <template v-if="d._badge"><div style="font-size:11px;font-weight:700;">{{ d._badge.icon }} {{ d._badge.name }}</div><div style="font-size:10px;color:var(--accent);">{{ sl(d._badge.stat) }}+{{ d._badge.value }}</div></template>
+            <div v-else style="font-size:11px;color:var(--text-dim);">空</div>
+          </div>
+          <div class="equip-slot" :class="{empty:!d._digivice}">
+            <div style="font-size:10px;color:var(--text-dim);">📟 暴龙机</div>
+            <template v-if="d._digivice"><div style="font-size:11px;font-weight:700;">{{ d._digivice.icon }} {{ d._digivice.name }}</div><div style="font-size:10px;color:var(--accent);"><span v-for="(v,k) in d._digivice.stats" :key="k">{{ sl(k) }}+{{ v }} </span></div></template>
+            <div v-else style="font-size:11px;color:var(--text-dim);">空</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -75,11 +105,15 @@ const playerItems = ref({})
 const showUseModal = ref(false)
 const usingItem = ref(null)
 const digimonList = ref([])
+const equipDigimons = ref([])
+
+const sl = s => ({hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',mp:'MP',healBonus:'治疗',resist:'抗性',crit:'暴击',all:'全属性'}[s]||s)
 
 const categories = [
   { key: 'battle', label: '战斗道具', icon: '⚔️' },
   { key: 'bind', label: '绑定物品', icon: '🔒' },
-  { key: 'trade', label: '可交易', icon: '💱' }
+  { key: 'trade', label: '可交易', icon: '💱' },
+  { key: 'equip', label: '装备', icon: '🎒' }
 ]
 
 const allItems = [
@@ -137,6 +171,7 @@ const filteredItems = computed(() => {
 })
 
 function getCategoryCount(cat) {
+  if (cat==='equip') return equipDigimons.value.filter(d=>d._badge||d._digivice).length
   const catItems = allItems.filter(i => i.category === cat)
   return catItems.reduce((sum, i) => sum + (playerItems.value[i.id] || 0), 0)
 }
@@ -238,6 +273,35 @@ async function applyItem(digimon) {
 
 async function saveItems() {
   const user = getCurrentUser(); if (user) await api.updateUser(user.objectId, { items: JSON.stringify(playerItems.value) })
+}
+
+async function loadEquipData() {
+  try {
+    const all = await getMyDigimons()
+    equipDigimons.value = all.map(d => {
+      let eq = {}
+      try { eq = d.equipment ? (typeof d.equipment === 'string' ? JSON.parse(d.equipment) : d.equipment) : {} } catch(e) {}
+      const tpl = getTemplate(d.templateId)
+      return {...d, _badge:eq.badge||null, _digivice:eq.digivice||null, _tplName:tpl?.name}
+    })
+  } catch(e) {}
+}
+
+function autoSort() {
+  // Sort items by category and count
+  const sorted = {}
+  for(const [id, count] of Object.entries(playerItems.value)) {
+    sorted[id] = count
+  }
+  // Sort keys: battle items first, then bind, then trade
+  const order = ['heal_hp','heal_mp','elixir','revive','antidote','awakening','burn_heal','ice_heal','para_heal','confuse_heal','full_heal',
+    'name_tag','free_reset','nature_mint','evo_stone','equip_chest',
+    'skill_scroll','dragon_scale','holy_feather','dark_crystal','nature_orb','metal_fragment','ocean_pearl','wind_essence','jungle_seed','nightmare_core','virus_antibody']
+  const reordered = {}
+  for(const k of order) { if(sorted[k]) reordered[k] = sorted[k] }
+  playerItems.value = reordered
+  saveItems()
+  alert('整理完成！')
 }
 
 onMounted(async () => {
