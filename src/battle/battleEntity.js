@@ -1,4 +1,4 @@
-import { applyTalents } from '../data/digimonData.js'
+import { applyTalents, digimonTemplates } from '../data/digimonData.js'
 
 export const STAGE_MULTIPLIERS = { '-6':0.25, '-5':0.28, '-4':0.33, '-3':0.4, '-2':0.5, '-1':0.66, '0':1.0, '1':1.5, '2':2.0, '3':2.5, '4':3.0, '5':3.5, '6':4.0 }
 export const STATUS_ICONS = { burn:'🔥', paralysis:'⚡', poison:'☠️', sleep:'💤', freeze:'❄️', confusion:'🌀' }
@@ -8,7 +8,7 @@ export class BattleEntity {
   constructor(digimon, template, skills, isPlayer, cardBonus) {
     this.objectId = digimon.objectId; this.templateId = digimon.templateId; this.name = digimon.nickname || template.name
     this.level = digimon.level; this.fields = template.fields || []; this.type = template.type; this.isPlayer = isPlayer
-    this.evolvedName = template.name
+    this.evolvedName = (digimon.nickname && digimonTemplates.some(t => t.name === digimon.nickname)) ? digimon.nickname : template.name
     let talents = digimon.talents; if (typeof talents === 'string') { try { talents = JSON.parse(talents) } catch(e) { talents = [] } }
     const rawStats = this._parseStats(digimon.stats); const s = applyTalents(rawStats, talents || [], digimon.level || 1)
     this.maxHp = s.maxHp || 100; this.hp = s.hp || s.maxHp || 100; this.maxMp = s.maxMp || 50; this.mp = s.mp || s.maxMp || 50
