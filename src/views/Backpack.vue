@@ -188,7 +188,10 @@ async function applyItem(digimon) {
     const total = (allocated.hp||0)+(allocated.mp||0)+(allocated.atk||0)+(allocated.def||0)+(allocated.spAtk||0)+(allocated.spDef||0)+(allocated.spd||0)
     if (total === 0) { alert('没有已分配的自由点'); return }
     const newFree = (digimon.freePoints||0) + total
-    await api.update('PlayerDigimon', digimon.objectId, { freePoints: newFree, allocatedPoints: JSON.stringify({hp:0,mp:0,atk:0,def:0,spAtk:0,spDef:0,spd:0}) })
+    const tpl = getTemplate(digimon.templateId)
+    let updateData = { freePoints: newFree, allocatedPoints: JSON.stringify({hp:0,mp:0,atk:0,def:0,spAtk:0,spDef:0,spd:0}) }
+    if (tpl) { const s = calcStats(tpl, digimon.level||1, {hp:0,mp:0,atk:0,def:0,spAtk:0,spDef:0,spd:0}, digimon.nature); updateData.stats = JSON.stringify({hp:s.maxHp,maxHp:s.maxHp,mp:s.maxMp,maxMp:s.maxMp,atk:s.atk,def:s.def,spAtk:s.spAtk,spDef:s.spDef,spd:s.spd}) }
+    await api.update('PlayerDigimon', digimon.objectId, updateData)
     playerItems.value['free_reset'] = Math.max(0, (playerItems.value['free_reset']||0)-1)
     await saveItems()
     showUseModal.value = false
