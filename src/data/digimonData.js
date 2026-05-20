@@ -387,7 +387,7 @@ export const cardMilestones = [
 ]
 export function getCardBonus(cardCount) {
   let bonus = {hp:0}
-  for (const m of cardMilestones) { if (cardCount >= m.count) { for (const [k,v] of Object.entries(m.bonus)) { bonus[k] = (bonus[k]||0) + v } } }
+  for (const m of cardMilestones) { if (cardCount >= m.count) { bonus = {...m.bonus} } }
   return bonus
 }
 

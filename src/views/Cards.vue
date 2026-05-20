@@ -4,10 +4,11 @@
     <div class="page-title">🃏 卡牌收藏</div>
 
     <div class="about-section">
-      <div class="about-section-title">📊 全局加成</div>
+      <div class="about-section-title">📊 全局加成（不累计，取最高档）</div>
       <div class="dex-modal-stats">
         <div class="dex-stat-row"><span>总卡牌数</span><span style="font-weight:700;color:var(--accent);">{{ totalCards }}</span></div>
         <div class="dex-stat-row" v-for="(v,k) in currentBonus" :key="k"><span>{{ statName(k) }}</span><span style="color:var(--green);">+{{ v }}%</span></div>
+        <div v-if="totalCards>100" class="dex-stat-row"><span style="font-size:10px;color:var(--text-dim);">已达到最高档(100张)</span></div>
       </div>
     </div>
 
@@ -16,6 +17,7 @@
       <div class="ex-grid">
         <div v-for="m in milestones" :key="m.count" class="ex-card" :style="totalCards>=m.count?{borderColor:'var(--accent)'}:{}">
           <div class="ex-card-icon">{{ totalCards>=m.count?'✅':'🔒' }}</div>
+          <div v-if="isCurrentTier(m)" style="font-size:9px;color:var(--accent);">当前加成</div>
           <div class="ex-card-name">{{ m.label }}</div>
           <div class="ex-card-desc" style="font-size:10px;">
             <span v-for="(v,k) in m.bonus" :key="k">{{ statName(k) }}+{{ v }}% </span>
@@ -55,7 +57,8 @@ const ownedCards = computed(() => cardList.value.filter(c=>c.count>0).length)
 const currentBonus = computed(() => getCardBonus(totalCards.value))
 const milestones = cardMilestones
 
-function statName(s) { return {hp:'HP',mp:'MP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度'}[s]||s }
+function statName(s) { return {hp:'HP'}[s]||s }
+function isCurrentTier(m) { const reached = milestones.filter(x => totalCards.value >= x.count); return reached.length>0 && reached[reached.length-1].count === m.count }
 
 onMounted(async () => {
   try {
