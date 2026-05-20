@@ -138,16 +138,6 @@ const allItems = [
   { id: 'equip_chest', name: '装备宝箱', icon: '🎁', desc: '打开随机获得徽章或暴龙机，选数码兽装备', price: 0, battleUse: false, bind: true, category: 'bind', usable: true },
 
   // 可交易物品 (trade)
-  { id: 'dragon_scale', name: '龙之鳞片', icon: '🐉', desc: '龙之咆哮领域数码兽掉落的稀有鳞片，可用于交易', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'holy_feather', name: '神圣羽毛', icon: '🪶', desc: '病毒克星领域数码兽的发光羽毛', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'dark_crystal', name: '暗之结晶', icon: '💎', desc: '黑暗区域浓缩能量形成的结晶', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'nature_orb', name: '自然宝珠', icon: '🔮', desc: '自然精灵领域孕育的翠绿宝珠', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'metal_fragment', name: '金属碎片', icon: '⚙️', desc: '金属帝国机械数码兽的碎片', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'ocean_pearl', name: '深海珍珠', icon: '🦪', desc: '深海救星领域的发光珍珠', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'wind_essence', name: '风之精华', icon: '💨', desc: '风之守卫领域凝结的风之精华', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'jungle_seed', name: '丛林种子', icon: '🌱', desc: '丛林奇兵领域的奇特种子', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'nightmare_core', name: '噩梦核心', icon: '👁️', desc: '噩梦士兵领域的黑暗核心', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'virus_antibody', name: '病毒抗体', icon: '💉', desc: '病毒克星领域产生的抗体精华', price: 0, battleUse: false, bind: false, category: 'trade' },
   { id: 'skill_scroll', name: '技能卷轴', icon: '📜', desc: '给一只数码兽学会随机通用技能', price: 0, category: 'trade', usable: true },
   // 交易材料（后续开放交易场使用）
   { id: 'dragon_scale', name: '龙之鳞片', icon: '🐉', desc: '龙之咆哮领域数码兽掉落的稀有鳞片，可兑换稀有道具', price: 0, category: 'trade' },
