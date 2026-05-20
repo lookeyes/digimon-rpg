@@ -1,5 +1,9 @@
 {
   "appId": "com.digimonrpg.app",
   "appName": "数码宝贝RPG",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "http://43.135.22.190",
+    "cleartext": true
+  }
 }
