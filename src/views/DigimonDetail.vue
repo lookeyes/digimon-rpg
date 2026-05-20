@@ -20,7 +20,20 @@
       <div v-for="s in statBars" :key="s.key" class="detail-stat-row"><span class="stat-icon">{{ s.icon }}</span><span class="stat-name">{{ s.label }}</span><div class="stat-bar-wrap"><div class="stat-bar" :style="{ width:s.percent+'%', background:s.color }"></div></div><span class="stat-num">{{ s.display }}</span></div>
     </div>
 
-    <div class="detail-section"><h4>🎒 装备</h4><div class="equip-slots"><div class="equip-slot" :class="{empty:!badgeData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">🏅 徽章</div><template v-if="badgeData"><div style="font-size:13px;font-weight:700;">{{ badgeData.icon }} {{ badgeData.name }}</div><div style="font-size:11px;color:var(--accent);">{{ statLabel(badgeData.stat) }}+{{ badgeData.value }}</div><button class="btn btn-danger btn-sm" @click="unequipBadge">卸下</button></template><div v-else style="font-size:12px;color:var(--text-dim);">空</div></div><div class="equip-slot" :class="{empty:!digiviceData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">📟 暴龙机</div><template v-if="digiviceData"><div style="font-size:13px;font-weight:700;">{{ digiviceData.icon }} {{ digiviceData.name }}</div><div style="font-size:11px;color:var(--accent);"><span v-for="(v,k) in digiviceData.stats" :key="k">{{ statLabel(k) }}+{{ v }} </span></div><button class="btn btn-primary btn-sm" @click="reforgeDigivice">🔁 洗练</button><button class="btn btn-danger btn-sm" @click="unequipDigivice">卸下</button></template><div v-else style="font-size:12px;color:var(--text-dim);">空</div></div></div></div>
+    <div class="detail-section"><h4>🎒 装备</h4><div class="equip-slots"><div class="equip-slot" :class="{empty:!badgeData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">🏅 徽章</div><template v-if="badgeData"><div style="font-size:13px;font-weight:700;">{{ badgeData.icon }} {{ badgeData.name }}</div><div style="font-size:11px;color:var(--accent);">{{ statLabel(badgeData.stat) }}+{{ badgeData.value }}</div><button class="btn btn-danger btn-sm" @click="unequipBadge">卸下</button></template><div v-else><div style="font-size:12px;color:var(--text-dim);">空</div><button class="btn btn-primary btn-sm" style="margin-top:4px;" @click="openEquipPicker('badge')">装备</button></div></div><div class="equip-slot" :class="{empty:!digiviceData}"><div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:4px;">📟 暴龙机</div><template v-if="digiviceData"><div style="font-size:13px;font-weight:700;">{{ digiviceData.icon }} {{ digiviceData.name }}</div><div style="font-size:11px;color:var(--accent);"><span v-for="(v,k) in digiviceData.stats" :key="k">{{ statLabel(k) }}+{{ v }} </span></div><button class="btn btn-primary btn-sm" @click="reforgeDigivice">🔁 洗练</button><button class="btn btn-danger btn-sm" @click="unequipDigivice">卸下</button></template><div v-else><div style="font-size:12px;color:var(--text-dim);">空</div><button class="btn btn-primary btn-sm" style="margin-top:4px;" @click="openEquipPicker('digivice')">装备</button></div></div></div>
+
+<!-- 装备选择弹窗 -->
+<div v-if="showEquipPicker" class="modal-overlay" @click.self="showEquipPicker=false">
+  <div class="dex-modal" style="max-height:70vh;text-align:left;">
+    <h3>选择{{ equipPickType==='badge'?'徽章':'暴龙机' }}</h3>
+    <div v-if="availableGear.length===0" style="text-align:center;padding:20px;color:var(--text-dim);">背包没有可用的{{ equipPickType==='badge'?'徽章':'暴龙机' }}</div>
+    <div v-for="(g,i) in availableGear" :key="i" class="bp-equip-card" style="cursor:pointer;" @click="equipGear(g)">
+      <div style="font-size:14px;font-weight:700;">{{ g.icon }} {{ g.name }}</div>
+      <div style="font-size:11px;color:var(--accent);">{{ g.desc }}</div>
+    </div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:10px;" @click="showEquipPicker=false">取消</button>
+  </div>
+</div></div>
 <div class="detail-section" v-if="digimon.xVirus" style="border:1px solid #b44dff;background:rgba(180,77,255,0.08);border-radius:8px;padding:10px;"><h4 style="color:#b44dff;">⚠️ X病毒感染</h4><span style="font-size:12px;color:var(--text-dim);">这只数码兽已感染X病毒。下次进化时有50%几率获得X抗体大幅增强，也有50%几率死亡。</span></div>
 <div class="detail-section" v-if="natureInfo"><h4>性格</h4><span class="tag" style="background:#ffd70033;border:1px solid #ffd700;color:#ffd700;">🌟 {{ natureInfo.name }}</span><span style="font-size:13px;color:var(--text-dim);">{{ natureInfo.desc }}</span></div>
     <div class="detail-section" v-if="abilityList.length>0"><h4>特性</h4><div v-for="a in abilityList" :key="a.id"><span class="tag" style="background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);">⚡{{ a.name }}</span><span style="font-size:12px;color:var(--text-dim);">{{ a.desc }}</span></div></div>
@@ -78,7 +91,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { getDigimonDetail, allocatePoints, equipSkill, unequipSkill, forgetSkill, evolveDigimon } from '../api/game.js'
+import { getDigimonDetail, allocatePoints, equipSkill, unequipSkill, forgetSkill, evolveDigimon, getPlayerInfo } from '../api/game.js'
 import { getTemplate, getField, getNature, getAbility, getSkill, isUniqueSkill, getEvolutionOptions, calcStats, applyTalents, fields, rerollDigivice } from '../data/digimonData.js'
 import { getDigimonSprite } from '../data/digimonSprites.js'
 import api from '../api/bmob.js'
@@ -107,6 +120,36 @@ const statBars=computed(()=>!digimon.value?[]:[{key:'hp',icon:statIcons.hp,label
 const natureInfo=computed(()=>{if(!digimon.value?.nature)return null;const n=getNature(digimon.value.nature);if(!n)return null;const sl={hp:'HP',mp:'MP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度'};const b=n.boost?`${sl[n.boost]||n.boost}+`:'';const r=n.reduce?`${sl[n.reduce]||n.reduce}−`:'';return{name:n.name,desc:b||r?(b+' / '+r):'均衡'}})
 const abilityList=computed(()=>{if(!digimon.value?.abilities)return[];let arr=digimon.value.abilities;if(typeof arr==='string'){try{arr=JSON.parse(arr)}catch(e){return[]}};return arr.map(id=>getAbility(id)).filter(Boolean)})
 const talentColors={white:'#aab',blue:'#4e9fff',purple:'#b44dff',red:'#e94560'}
+
+const showEquipPicker = ref(false); const equipPickType = ref('badge'); const availableGear = ref([])
+async function openEquipPicker(type) {
+  equipPickType.value = type
+  try {
+    const info = await getPlayerInfo(); let items = {}
+    try { items = typeof info.items === 'string' ? JSON.parse(info.items) : (info.items||{}) } catch(e) {}
+    const prefix = type==='badge'?'eqb_':'eqd_'; const list = []
+    for(const [k,v] of Object.entries(items)) {
+      if(!k.startsWith(prefix)) continue
+      try { const gear = typeof v === 'string' ? JSON.parse(v) : v; list.push({key:k, icon:gear.icon, name:gear.name, desc:type==='badge'?statLabel(gear.stat)+'+'+gear.value:Object.entries(gear.stats||{}).map(([sk,sv])=>statLabel(sk)+'+'+sv).join(' '), gear}) } catch(e) {}
+    }
+    availableGear.value = list; showEquipPicker.value = true
+  } catch(e) { alert('加载失败') }
+}
+async function equipGear(g) {
+  if(!digimon.value)return
+  try {
+    let eq = {}
+    try { eq = digimon.value.equipment ? (typeof digimon.value.equipment==='string'?JSON.parse(digimon.value.equipment):digimon.value.equipment) : {} } catch(e) {}
+    if(equipPickType.value==='badge') eq.badge = g.gear; else eq.digivice = g.gear
+    await api.update('PlayerDigimon', digimon.value.objectId, { equipment: JSON.stringify(eq) }, null, true)
+    // Remove from player items
+    const info2 = await getPlayerInfo(); let items2 = {}
+    try { items2 = typeof info2.items === 'string' ? JSON.parse(info2.items) : (info2.items||{}) } catch(e) {}
+    delete items2[g.key]
+    await api.updateUser(info2.objectId, { items: JSON.stringify(items2) }, true)
+    digimon.value.equipment = JSON.stringify(eq); showEquipPicker.value = false
+  } catch(e) { alert('装备失败: '+e.message) }
+}
 
 const equipData = computed(() => { const d = digimon.value; if (!d?.equipment) return {}; try { return typeof d.equipment === 'string' ? JSON.parse(d.equipment) : d.equipment } catch(e) { return {} } })
 const badgeData = computed(() => equipData.value?.badge||null)
