@@ -3,6 +3,7 @@
   "appName": "数码宝贝RPG",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https"
+    "url": "http://43.135.22.190",
+    "cleartext": true
   }
 }
