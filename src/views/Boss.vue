@@ -106,7 +106,7 @@ async function startBoss(boss) {
   const tpl = getTemplate(boss.templateId) || digimonTemplates.find(t => t.stage === '究极体')
   if (tpl && engine.value.enemyTeam.length > 0) {
     const bossEntity = engine.value.enemyTeam[0]
-    bossEntity.name = tpl.name
+    bossEntity.name = tpl.name; bossEntity.templateId = tpl.id; bossEntity.evolvedName = tpl.name; bossEntity.fields = tpl.fields||[]; bossEntity.type = tpl.type||'自由'
     const hp = Math.floor((tpl.baseHp + 3.0 * (boss.level-1)) * boss.hpMult)
     bossEntity.maxHp = hp; bossEntity.hp = hp
     bossEntity.atk = Math.floor(bossEntity.atk * boss.statMult)
