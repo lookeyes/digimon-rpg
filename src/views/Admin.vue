@@ -173,11 +173,10 @@ import { ref, computed, onMounted } from 'vue'
 import { getTemplate, getNature } from '../data/digimonData.js'
 import api from '../api/bmob.js'
 const authed = ref(false), adminPwd = ref(''), authError = ref('')
-const PWD_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'
-async function doAuth() {
-  const enc = new TextEncoder().encode(adminPwd.value)
-  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc))).map(b => b.toString(16).padStart(2,'0')).join('')
-  if (hash === PWD_HASH) { authed.value = true; authError.value = ''; loadStats() }
+const PWD_HASH = -437408959 // admin123 的 hash
+function doAuth() {
+  let h=0; for(let i=0;i<adminPwd.value.length;i++){h=((h<<5)-h)+adminPwd.value.charCodeAt(i);h|=0}
+  if (h===PWD_HASH) { authed.value = true; authError.value = ''; loadStats() }
   else { authError.value = '密码错误'; adminPwd.value = '' }
 }
 
