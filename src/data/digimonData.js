@@ -404,28 +404,28 @@ export function getCardPct(count) { let p = 0; for (const m of cardMilestones) {
 
 // 装备系统
 export const badgeDefs = [
-  {id:'courage',name:'勇气徽章',icon:'🦁',desc:'物理攻击力提升',stat:'atk',min:5,max:15},
-  {id:'friendship',name:'友情徽章',icon:'🤝',desc:'生命值上限提升',stat:'hp',min:10,max:30},
-  {id:'love',name:'爱情徽章',icon:'💕',desc:'受到治疗量提升',stat:'healBonus',min:10,max:25},
-  {id:'knowledge',name:'知识徽章',icon:'📚',desc:'特殊攻击力提升',stat:'spAtk',min:5,max:15},
-  {id:'sincerity',name:'诚实徽章',icon:'🛡️',desc:'物理防御力提升',stat:'def',min:5,max:15},
-  {id:'purity',name:'纯真徽章',icon:'🕊️',desc:'速度提升',stat:'spd',min:3,max:10},
-  {id:'hope',name:'希望徽章',icon:'⭐',desc:'全属性小幅提升',stat:'all',min:2,max:8},
-  {id:'light',name:'光明徽章',icon:'💡',desc:'异常状态抗性提升',stat:'resist',min:10,max:30},
-  {id:'kindness',name:'温柔徽章',icon:'🌸',desc:'MP上限提升',stat:'mp',min:8,max:20},
-  {id:'miracle',name:'奇迹徽章',icon:'✨',desc:'暴击率提升',stat:'crit',min:3,max:10}
+  {id:'courage',name:'勇气徽章',icon:'🦁',desc:'物理攻击力提升',stat:'atk',pctMin:5,pctMax:15},
+  {id:'friendship',name:'友情徽章',icon:'🤝',desc:'生命值上限提升',stat:'hp',pctMin:10,pctMax:30},
+  {id:'love',name:'爱情徽章',icon:'💕',desc:'受到治疗量提升',stat:'healBonus',pctMin:10,pctMax:25},
+  {id:'knowledge',name:'知识徽章',icon:'📚',desc:'特殊攻击力提升',stat:'spAtk',pctMin:5,pctMax:15},
+  {id:'sincerity',name:'诚实徽章',icon:'🛡️',desc:'物理防御力提升',stat:'def',pctMin:5,pctMax:15},
+  {id:'purity',name:'纯真徽章',icon:'🕊️',desc:'速度提升',stat:'spd',pctMin:3,pctMax:10},
+  {id:'hope',name:'希望徽章',icon:'⭐',desc:'全属性小幅提升',stat:'all',pctMin:2,pctMax:6},
+  {id:'light',name:'光明徽章',icon:'💡',desc:'异常状态抗性提升',stat:'resist',pctMin:10,pctMax:30},
+  {id:'kindness',name:'温柔徽章',icon:'🌸',desc:'MP上限提升',stat:'mp',pctMin:8,pctMax:20},
+  {id:'miracle',name:'奇迹徽章',icon:'✨',desc:'暴击率提升',stat:'crit',pctMin:3,pctMax:10}
 ]
 export const digiviceDefs = [
-  {id:'d1',name:'初代暴龙机',icon:'📟',desc:'1项属性加成',stats:1,range:[3,12]},
-  {id:'d_ark',name:'数码方舟',icon:'🔮',desc:'1-2项属性加成',stats:2,range:[4,15]},
-  {id:'d3',name:'D3暴龙机',icon:'📱',desc:'2项属性加成',stats:2,range:[5,18]},
-  {id:'d_scan',name:'数码扫描器',icon:'🔍',desc:'2-3项属性加成',stats:3,range:[4,14]},
-  {id:'d_xros',name:'合体装载器',icon:'⚡',desc:'3项属性加成',stats:3,range:[6,20]}
+  {id:'d1',name:'初代暴龙机',icon:'📟',desc:'1项属性加成',stats:1,pctRange:[10,20]},
+  {id:'d_ark',name:'数码方舟',icon:'🔮',desc:'1-2项属性加成',stats:2,pctRange:[7,15]},
+  {id:'d3',name:'D3暴龙机',icon:'📱',desc:'2项属性加成',stats:2,pctRange:[7,15]},
+  {id:'d_scan',name:'数码扫描器',icon:'🔍',desc:'2-3项属性加成',stats:3,pctRange:[5,10]},
+  {id:'d_xros',name:'合体装载器',icon:'⚡',desc:'3项属性加成',stats:3,pctRange:[5,10]}
 ]
 export const equipStats = ['hp','atk','def','spAtk','spDef','spd']
 export function rollBadge() {
   const def = badgeDefs[Math.floor(Math.random()*badgeDefs.length)]
-  const value = Math.floor(def.min + Math.random()*(def.max-def.min+1))
+  const value = Math.round((def.pctMin + Math.random()*(def.pctMax-def.pctMin))*10)/10
   return {id:def.id,name:def.name,icon:def.icon,stat:def.stat,value}
 }
 export function rollDigivice() {
@@ -434,13 +434,13 @@ export function rollDigivice() {
   const stats = {}; const used = new Set()
   for(let i=0;i<nStats;i++){
     let s; do{s=equipStats[Math.floor(Math.random()*equipStats.length)]}while(used.has(s))
-    used.add(s);stats[s]=Math.floor(def.range[0]+Math.random()*(def.range[1]-def.range[0]+1))
+    used.add(s);stats[s]=Math.round((def.pctRange[0]+Math.random()*(def.pctRange[1]-def.pctRange[0]))*10)/10
   }
   return {id:def.id,name:def.name,icon:def.icon,stats}
 }
 export function rerollBadge(badge) {
   const def = badgeDefs.find(b=>b.id===badge.id); if(!def)return badge
-  return {...badge,value:Math.floor(def.min+Math.random()*(def.max-def.min+1))}
+  return {...badge,value:Math.round((def.pctMin+Math.random()*(def.pctMax-def.pctMin))*10)/10}
 }
 export function rerollDigivice(digivice) {
   const def = digiviceDefs.find(d=>d.id===digivice.id); if(!def)return digivice
@@ -448,7 +448,7 @@ export function rerollDigivice(digivice) {
   const stats = {}; const used = new Set()
   for(let i=0;i<nStats;i++){
     let s; do{s=equipStats[Math.floor(Math.random()*equipStats.length)]}while(used.has(s))
-    used.add(s);stats[s]=Math.floor(def.range[0]+Math.random()*(def.range[1]-def.range[0]+1))
+    used.add(s);stats[s]=Math.round((def.pctRange[0]+Math.random()*(def.pctRange[1]-def.pctRange[0]))*10)/10
   }
   return {...digivice,stats}
 }

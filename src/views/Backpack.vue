@@ -55,12 +55,12 @@
         <div class="equip-slots" style="margin-top:8px;">
           <div class="equip-slot" :class="{empty:!d._badge}">
             <div style="font-size:10px;color:var(--text-dim);">🏅 徽章</div>
-            <template v-if="d._badge"><div style="font-size:11px;font-weight:700;">{{ d._badge.icon }} {{ d._badge.name }}</div><div style="font-size:10px;color:var(--accent);">{{ sl(d._badge.stat) }}+{{ d._badge.value }}</div></template>
+            <template v-if="d._badge"><div style="font-size:11px;font-weight:700;">{{ d._badge.icon }} {{ d._badge.name }}</div><div style="font-size:10px;color:var(--accent);">{{ sl(d._badge.stat) }}+{{ d._badge.value }}%</div></template>
             <div v-else style="font-size:11px;color:var(--text-dim);">空</div>
           </div>
           <div class="equip-slot" :class="{empty:!d._digivice}">
             <div style="font-size:10px;color:var(--text-dim);">📟 暴龙机</div>
-            <template v-if="d._digivice"><div style="font-size:11px;font-weight:700;">{{ d._digivice.icon }} {{ d._digivice.name }}</div><div style="font-size:10px;color:var(--accent);"><span v-for="(v,k) in d._digivice.stats" :key="k">{{ sl(k) }}+{{ v }} </span></div></template>
+            <template v-if="d._digivice"><div style="font-size:11px;font-weight:700;">{{ d._digivice.icon }} {{ d._digivice.name }}</div><div style="font-size:10px;color:var(--accent);"><span v-for="(v,k) in d._digivice.stats" :key="k">{{ sl(k) }}+{{ v }}% </span></div></template>
             <div v-else style="font-size:11px;color:var(--text-dim);">空</div>
           </div>
         </div>
@@ -174,7 +174,7 @@ const equipBagItems = computed(() => {
     try { const gear = typeof val === 'string' ? JSON.parse(val) : val
       const isBadge = key.startsWith('eqb_')
       items.push({key, isBadge, gear, icon:gear.icon, name:gear.name,
-        desc: isBadge ? `${sl(gear.stat)}+${gear.value}` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v).join(' '),
+        desc: isBadge ? `${sl(gear.stat)}+${gear.value}%` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' '),
         count:1, category:'equip', usable:true, id:key})
     } catch(e) {}
   }
@@ -217,7 +217,7 @@ async function useItem(item) {
     try {
       const gear = typeof playerItems.value[item.id] === 'string' ? JSON.parse(playerItems.value[item.id]) : playerItems.value[item.id]
       if(!gear){alert('装备数据损坏');return}
-      gearDetail.value = {isBadge, gear, desc: isBadge ? `${sl(gear.stat)}+${gear.value}` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v).join(' ')}
+      gearDetail.value = {isBadge, gear, desc: isBadge ? `${sl(gear.stat)}+${gear.value}%` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' ')}
       gearItemKey.value = item.id; showGearModal.value = true
     } catch(e) { alert('读取失败') }
     return
@@ -243,7 +243,7 @@ async function doReforgeGear() {
   const newDv = rerollDigivice(gearDetail.value.gear)
   playerItems.value[gearItemKey.value] = JSON.stringify(newDv)
   await saveItems()
-  gearDetail.value = {isBadge:false, gear:newDv, desc: Object.entries(newDv.stats||{}).map(([k,v])=>sl(k)+'+'+v).join(' ')}
+  gearDetail.value = {isBadge:false, gear:newDv, desc: Object.entries(newDv.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' ')}
   alert('洗练完成！')
 }
 async function doDiscardGear() {

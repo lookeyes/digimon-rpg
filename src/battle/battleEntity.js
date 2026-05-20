@@ -21,11 +21,20 @@ export class BattleEntity {
       this.spAtk = pct(this.spAtk,'spAtk'); this.spDef = pct(this.spDef,'spDef')
       this.spd = pct(this.spd,'spd')
     }
-    // 装备加成 (从stats._equip读取)
+    // 装备加成 (百分比，从stats._equip读取)
     if (isPlayer && digimon.stats) {
       try { const s = typeof digimon.stats === 'string' ? JSON.parse(digimon.stats) : digimon.stats; const eq = s._equip
-        if (eq?.badge) { const b = eq.badge; if (b.stat === 'all') { this.atk+=b.value; this.def+=b.value; this.spAtk+=b.value; this.spDef+=b.value; this.spd+=b.value } else if (b.stat === 'hp') { this.maxHp+=b.value; this.hp+=b.value } else if (b.stat === 'mp') { this.maxMp+=b.value; this.mp+=b.value } else if (this[b.stat] !== undefined) { this[b.stat] += b.value } }
-        if (eq?.digivice) { const dv = eq.digivice; if (dv.stats) { for (const [k,v] of Object.entries(dv.stats)) { if (k==='hp') { this.maxHp+=v; this.hp+=v } else if (this[k] !== undefined) { this[k] += v } } } }
+        if (eq?.badge) { const b = eq.badge
+          if (b.stat === 'all') { const p = b.value/100; this.atk=Math.round(this.atk*(1+p)); this.def=Math.round(this.def*(1+p)); this.spAtk=Math.round(this.spAtk*(1+p)); this.spDef=Math.round(this.spDef*(1+p)); this.spd=Math.round(this.spd*(1+p)) }
+          else if (b.stat === 'hp') { this.maxHp=Math.round(this.maxHp*(1+b.value/100)); this.hp=Math.round(this.hp*(1+b.value/100)) }
+          else if (b.stat === 'mp') { this.maxMp=Math.round(this.maxMp*(1+b.value/100)); this.mp=Math.round(this.mp*(1+b.value/100)) }
+          else if (this[b.stat] !== undefined) { this[b.stat] = Math.round(this[b.stat]*(1+b.value/100)) }
+        }
+        if (eq?.digivice?.stats) { for (const [k,v] of Object.entries(eq.digivice.stats)) {
+          const p = v/100
+          if (k==='hp') { this.maxHp=Math.round(this.maxHp*(1+p)); this.hp=Math.round(this.hp*(1+p)) }
+          else if (this[k] !== undefined) { this[k] = Math.round(this[k]*(1+p)) }
+        } }
       } catch(e) {}
     }
     this.baseAtk = this.atk; this.baseDef = this.def; this.baseSpAtk = this.spAtk; this.baseSpDef = this.spDef; this.baseSpd = this.spd; this.baseAccuracy = 100
