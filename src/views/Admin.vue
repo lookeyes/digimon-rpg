@@ -137,8 +137,11 @@ import api from '../api/bmob.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const authed = ref(false), adminPwd = ref(''), authError = ref('')
-function doAuth() {
-  if (adminPwd.value === 'admin123') { authed.value = true; authError.value = ''; loadStats() }
+const PWD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'
+async function doAuth() {
+  const enc = new TextEncoder().encode(adminPwd.value)
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc))).map(b => b.toString(16).padStart(2,'0')).join('')
+  if (hash === PWD_HASH) { authed.value = true; authError.value = ''; loadStats() }
   else { authError.value = '密码错误'; adminPwd.value = '' }
 }
 
