@@ -93,10 +93,19 @@
         <div style="font-size:48px;">{{ gearDetail.gear.icon }}</div>
         <h3>{{ gearDetail.gear.name }}</h3>
         <p style="font-size:13px;color:var(--accent);margin-bottom:12px;">{{ gearDetail.desc }}</p>
+        <!-- 暴龙机锁定选项 -->
+        <div v-if="!gearDetail.isBadge&&gearDetail.gear.stats" style="margin-bottom:10px;text-align:left;">
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">锁定保留的属性（每项消耗翻倍）</div>
+          <div v-for="(v,k) in gearDetail.gear.stats" :key="k" class="lock-row" @click="toggleBagLock(k)" :style="{background:bagLocks[k]?'var(--accent-glow)':'var(--bg-primary)',borderColor:bagLocks[k]?'var(--accent)':'var(--border)'}">
+            <span>{{ bagLocks[k]?'🔒':'🔓' }}</span><span>{{ sl(k) }}+{{ v }}%</span>
+            <span v-if="bagLocks[k]" style="font-size:10px;color:var(--accent);">保留</span>
+          </div>
+          <div v-if="lockCount>0" style="font-size:11px;color:var(--orange);margin-top:4px;">消耗: {{ 5000*Math.pow(2,lockCount) }} Bits</div>
+        </div>
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
           <button class="btn btn-primary btn-md" @click="doEquipGear">⚔️ 装备</button>
           <button v-if="gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeBadgeBag">🔁 洗练 10000Bits</button>
-          <button v-if="!gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeGear">🔁 洗练 5000Bits</button>
+          <button v-if="!gearDetail.isBadge" class="btn btn-secondary btn-md" @click="doReforgeGear">🔁 洗练{{ lockCount>0?' '+5000*Math.pow(2,lockCount)+'Bits':' 5000Bits' }}</button>
           <button class="btn btn-danger btn-md" @click="doDiscardGear">🗑️ 丢弃</button>
         </div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;" @click="showGearModal=false">关闭</button>
@@ -197,7 +206,10 @@ function getCategoryCount(cat) {
   return catItems.reduce((sum, i) => sum + (playerItems.value[i.id] || 0), 0)
 }
 
-const showGearModal = ref(false); const gearDetail = ref(null); const gearItemKey = ref('')
+const showGearModal = ref(false); const gearDetail = ref(null); const gearItemKey = ref(''); const bagLocks = ref({})
+const lockCount = computed(() => Object.values(bagLocks.value).filter(Boolean).length)
+function toggleBagLock(k) { bagLocks.value = {...bagLocks.value, [k]: !bagLocks.value[k]} }
+function clearBagLocks() { bagLocks.value = {} }
 async function useItem(item) {
   if (item.id === 'equip_chest') {
     const isBadge = Math.random() < 0.5
@@ -219,7 +231,7 @@ async function useItem(item) {
       const gear = typeof playerItems.value[item.id] === 'string' ? JSON.parse(playerItems.value[item.id]) : playerItems.value[item.id]
       if(!gear){alert('装备数据损坏');return}
       gearDetail.value = {isBadge, gear, desc: isBadge ? `${sl(gear.stat)}+${gear.value}%` : Object.entries(gear.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' ')}
-      gearItemKey.value = item.id; showGearModal.value = true
+      gearItemKey.value = item.id; clearBagLocks(); showGearModal.value = true
     } catch(e) { alert('读取失败') }
     return
   }
@@ -248,7 +260,10 @@ async function doReforgeBadgeBag() {
 }
 async function doReforgeGear() {
   if(!gearDetail.value||gearDetail.value.isBadge)return
-  try{await spendGold(5000);const newDv=rerollDigivice(gearDetail.value.gear)
+  const cost = 5000 * Math.pow(2, lockCount.value)
+  try{await spendGold(cost);const oldDv=gearDetail.value.gear;const newDv=rerollDigivice(oldDv)
+    if(lockCount.value>0){const kept={};for(const[k,v]of Object.entries(oldDv.stats)){if(bagLocks.value[k])kept[k]=v}
+      for(const[k,v]of Object.entries(newDv.stats)){if(!kept[k])kept[k]=v};newDv.stats=kept;clearBagLocks()}
     playerItems.value[gearItemKey.value]=JSON.stringify(newDv);await saveItems()
     gearDetail.value={isBadge:false,gear:newDv,desc:Object.entries(newDv.stats||{}).map(([k,v])=>sl(k)+'+'+v+'%').join(' ')}
     alert('洗练完成！')}catch(e){alert(e.message)}
