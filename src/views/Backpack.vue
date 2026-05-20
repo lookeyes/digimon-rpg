@@ -21,18 +21,39 @@
     </div>
 
     <div v-else class="bp-list">
-      <div v-for="item in filteredItems" :key="item.id" class="bp-item" :class="{ empty: item.count===0, usable: item.battleUse }">
+      <div v-for="item in filteredItems" :key="item.id" class="bp-item" :class="{ usable: item.battleUse||item.usable }" @click="item.usable ? useItem(item) : null">
         <div class="bp-item-icon">{{ item.icon }}</div>
         <div class="bp-item-info">
           <div class="bp-item-name">
             {{ item.name }}
             <span v-if="item.bind" class="bp-bind-tag">绑定</span>
             <span v-if="item.battleUse" class="bp-battle-tag">战斗</span>
+            <span v-if="item.usable" class="bp-use-tag">可使用</span>
           </div>
           <div class="bp-item-desc">{{ item.desc }}</div>
           <div v-if="item.price" class="bp-item-price">💰 商城 {{ item.price }}G</div>
         </div>
         <div class="bp-item-count">×{{ item.count }}</div>
+      </div>
+    </div>
+
+    <!-- 使用道具弹窗 -->
+    <div v-if="showUseModal" class="modal-overlay" @click.self="showUseModal=false">
+      <div class="dex-modal" style="max-height:70vh;">
+        <h3 style="margin-bottom:4px;">{{ usingItem?.icon }} 使用 {{ usingItem?.name }}</h3>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">{{ usingItem?.desc }}</p>
+        <div v-if="digimonList.length===0" style="text-align:center;padding:20px;color:var(--text-dim);">没有可使用的数码兽</div>
+        <div v-else style="max-height:40vh;overflow-y:auto;">
+          <div v-for="d in digimonList" :key="d.objectId" class="bp-digi-select" @click="applyItem(d)">
+            <div class="bp-digi-sprite" v-html="digiSprite(d)"></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;">{{ d.nickname||getTplName(d.templateId) }}</div>
+              <div style="font-size:11px;color:var(--text-dim);">Lv.{{ d.level }} · 技能{{ countLearned(d) }}/10</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;color:var(--accent);">选择 →</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;" @click="showUseModal=false">取消</button>
       </div>
     </div>
 
@@ -42,11 +63,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getPlayerInfo } from '../api/game.js'
+import { getPlayerInfo, getMyDigimons } from '../api/game.js'
+import { getTemplate, getRandomCommonSkills } from '../data/digimonData.js'
+import { getDigimonSprite } from '../data/digimonSprites.js'
+import { getCurrentUser } from '../api/auth.js'
+import api from '../api/bmob.js'
 import BottomNav from '../components/BottomNav.vue'
 
 const activeTab = ref('battle')
 const playerItems = ref({})
+const showUseModal = ref(false)
+const usingItem = ref(null)
+const digimonList = ref([])
 
 const categories = [
   { key: 'battle', label: '战斗道具', icon: '⚔️' },
@@ -85,7 +113,18 @@ const allItems = [
   { id: 'jungle_seed', name: '丛林种子', icon: '🌱', desc: '丛林奇兵领域的奇特种子', price: 0, battleUse: false, bind: false, category: 'trade' },
   { id: 'nightmare_core', name: '噩梦核心', icon: '👁️', desc: '噩梦士兵领域的黑暗核心', price: 0, battleUse: false, bind: false, category: 'trade' },
   { id: 'virus_antibody', name: '病毒抗体', icon: '💉', desc: '病毒克星领域产生的抗体精华', price: 0, battleUse: false, bind: false, category: 'trade' },
-  { id: 'skill_scroll', name: '技能卷轴', icon: '📜', desc: '使用后随机获得一个通用技能', price: 0, battleUse: false, bind: false, category: 'trade' }
+  { id: 'skill_scroll', name: '技能卷轴', icon: '📜', desc: '给一只数码兽学会随机通用技能', price: 0, category: 'trade', usable: true },
+  // 交易材料（后续开放交易场使用）
+  { id: 'dragon_scale', name: '龙之鳞片', icon: '🐉', desc: '龙之咆哮领域数码兽掉落的稀有鳞片，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'holy_feather', name: '神圣羽毛', icon: '🪶', desc: '病毒克星领域数码兽的发光羽毛，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'dark_crystal', name: '暗之结晶', icon: '💎', desc: '黑暗区域浓缩能量形成的结晶，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'nature_orb', name: '自然宝珠', icon: '🔮', desc: '自然精灵领域孕育的翠绿宝珠，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'metal_fragment', name: '金属碎片', icon: '⚙️', desc: '金属帝国机械数码兽的碎片，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'ocean_pearl', name: '深海珍珠', icon: '🦪', desc: '深海救星领域的发光珍珠，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'wind_essence', name: '风之精华', icon: '💨', desc: '风之守卫领域凝结的风之精华，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'jungle_seed', name: '丛林种子', icon: '🌱', desc: '丛林奇兵领域的奇特种子，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'nightmare_core', name: '噩梦核心', icon: '👁️', desc: '噩梦士兵领域的黑暗核心，可兑换稀有道具', price: 0, category: 'trade' },
+  { id: 'virus_antibody', name: '病毒抗体', icon: '💉', desc: '病毒克星领域产生的抗体精华，可兑换稀有道具', price: 0, category: 'trade' }
 ]
 
 const filteredItems = computed(() => {
@@ -99,6 +138,40 @@ const filteredItems = computed(() => {
 function getCategoryCount(cat) {
   const catItems = allItems.filter(i => i.category === cat)
   return catItems.reduce((sum, i) => sum + (playerItems.value[i.id] || 0), 0)
+}
+
+async function useItem(item) {
+  if (item.id === 'skill_scroll') {
+    const all = await getMyDigimons()
+    digimonList.value = all.filter(d => (parseArray(d.learnedSkills)).length < 10)
+    if (digimonList.value.length === 0) { alert('所有数码兽技能已满'); return }
+    usingItem.value = item; showUseModal.value = true
+  }
+}
+
+function parseArray(v) { if (!v) return []; if (typeof v === 'string') { try { return JSON.parse(v) } catch(e) { return [] } } return v }
+
+function countLearned(d) { return parseArray(d.learnedSkills).length }
+
+function getTplName(tid) { const t = getTemplate(tid); return t?.name||'???' }
+
+function digiSprite(d) { const t = getTemplate(d.templateId); return getDigimonSprite(d.templateId, 40, t?.name)||'❓' }
+
+async function applyItem(digimon) {
+  if (usingItem.value?.id === 'skill_scroll') {
+    const learned = parseArray(digimon.learnedSkills)
+    if (learned.length >= 10) { alert('技能已满 (10个)'); return }
+    const candidates = getRandomCommonSkills(8)
+    const available = candidates.filter(s => !learned.includes(s.id))
+    if (available.length === 0) { alert('没有可以学习的新技能'); return }
+    const skill = available[0]
+    learned.push(skill.id)
+    await api.update('PlayerDigimon', digimon.objectId, { learnedSkills: JSON.stringify(learned) })
+    playerItems.value['skill_scroll'] = Math.max(0, (playerItems.value['skill_scroll']||0)-1)
+    const user = getCurrentUser(); if (user) await api.updateUser(user.objectId, { items: JSON.stringify(playerItems.value) })
+    showUseModal.value = false
+    alert(`${digimon.nickname||getTplName(digimon.templateId)} 学会了 ${skill.name}！`)
+  }
 }
 
 onMounted(async () => {
@@ -129,4 +202,11 @@ onMounted(async () => {
 .bp-item-count { font-size:16px; font-weight:700; color:var(--accent); min-width:30px; text-align:center; }
 .bp-bind-tag { font-size:9px; background:var(--orange)22; color:var(--orange); border:1px solid var(--orange); border-radius:3px; padding:0 4px; }
 .bp-battle-tag { font-size:9px; background:var(--green)22; color:var(--green); border:1px solid var(--green); border-radius:3px; padding:0 4px; }
+.bp-use-tag { font-size:9px; background:var(--gold)22; color:var(--gold); border:1px solid var(--gold); border-radius:3px; padding:0 4px; }
+.bp-item.usable { cursor:pointer; }
+.bp-item.usable:active { transform:scale(0.97); }
+.bp-digi-select { display:flex; align-items:center; gap:10px; padding:8px; background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; margin-bottom:4px; cursor:pointer; transition:all 0.15s; }
+.bp-digi-select:hover { border-color:var(--accent); }
+.bp-digi-select:active { transform:scale(0.97); }
+.bp-digi-sprite { width:40px; height:40px; overflow:hidden; }
 </style>
