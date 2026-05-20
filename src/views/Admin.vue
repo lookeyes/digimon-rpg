@@ -164,7 +164,6 @@
       </div>
     </div>
 
-    <BottomNav/>
     </template>
   </div>
 </template>
@@ -173,8 +172,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { getTemplate, getNature } from '../data/digimonData.js'
 import api from '../api/bmob.js'
-import BottomNav from '../components/BottomNav.vue'
-
 const authed = ref(false), adminPwd = ref(''), authError = ref('')
 const PWD_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'
 async function doAuth() {
