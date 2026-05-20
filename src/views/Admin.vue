@@ -185,14 +185,8 @@ const digiStats = computed(() => {
   try { const s = typeof digiDetail.value.stats === 'string' ? JSON.parse(digiDetail.value.stats) : digiDetail.value.stats; const keys = {maxHp:'HP',maxMp:'MP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度'}; const r={}; for(const[k,l] of Object.entries(keys)){if(s[k]!==undefined)r[l]=s[k]}; return r } catch(e) { return null }
 })
 
-function getStage(d) {
-  const t = getTemplate(d.templateId); if (t) return t.stage
-  if (d.evolvedTo) { try { const evo = typeof d.evolvedTo === 'string' ? JSON.parse(d.evolvedTo) : d.evolvedTo; if (evo?.stage) return evo.stage } catch(e) {} }
-  return '成长期'
-}
-
-function statName(s) { return {maxHp:'HP',maxMp:'MP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度'}[s]||s }
-function natureLabel(n) { if(!n)return'?';const nt=getNature(n);return nt?nt.name+' ('+(nt.boost?nt.boost+'↑':'')+(nt.reduce?nt.reduce+'↓':'')+')':n }
+function getStage(d) { const t = getTemplate(d.templateId); return t?.stage||'?' }
+function natureLabel(n) { if(!n)return'?';const nt=getNature(n);if(!nt)return n;const b=nt.boost?nt.boost+'↑':'';const r=nt.reduce?nt.reduce+'↓':'';return nt.name+(b||r?` (${b}${r})`:'') }
 function itemName(id) {
   const names = {heal_hp:'回复药剂',heal_mp:'MP回复剂',antidote:'解毒草',awakening:'苏醒药',burn_heal:'灼烧膏',ice_heal:'解冻剂',para_heal:'解麻药',confuse_heal:'解乱果',full_heal:'万能药',revive:'复活药',elixir:'圣灵药',name_tag:'改名卡',free_reset:'洗点券',nature_mint:'性格薄荷',skill_scroll:'技能卷轴',dragon_scale:'龙之鳞片',holy_feather:'神圣羽毛',dark_crystal:'暗之结晶',nature_orb:'自然宝珠',metal_fragment:'金属碎片',ocean_pearl:'深海珍珠',wind_essence:'风之精华',jungle_seed:'丛林种子',nightmare_core:'噩梦核心',virus_antibody:'病毒抗体'}
   return names[id]||id
@@ -283,7 +277,7 @@ onMounted(() => { if (authed.value) loadStats() })
 <style scoped>
 .admin-card { background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:6px; cursor:pointer; transition:all 0.15s; }
 .admin-card:active { transform:scale(0.97); }
-.admin-overview { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:14px; }
+.admin-overview { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:14px; }
 .admin-stat { background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:10px 6px; text-align:center; cursor:pointer; transition:all 0.15s; }
 .admin-stat:active { transform:scale(0.95); }
 .admin-stat-num { font-size:20px; font-weight:900; color:var(--accent); }
