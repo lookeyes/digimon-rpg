@@ -20,7 +20,6 @@
       <div class="admin-overview">
         <div class="admin-stat" @click="tab='players';loadPlayers()"><div class="admin-stat-num">{{ stats.players }}</div><div class="admin-stat-label">玩家数</div></div>
         <div class="admin-stat" @click="tab='digimon';loadDigimons()"><div class="admin-stat-num">{{ stats.digimons }}</div><div class="admin-stat-label">数码兽</div></div>
-        <div class="admin-stat" @click="tab='eggs';loadEggs()"><div class="admin-stat-num">{{ stats.eggs }}</div><div class="admin-stat-label">数码蛋</div></div>
         <div class="admin-stat"><div class="admin-stat-num">{{ stats.totalBits }}</div><div class="admin-stat-label">总Bits</div></div>
       </div>
     </div>
@@ -69,21 +68,6 @@
         <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">
           模板: {{ d.templateId }} · 性格: {{ d.nature||'?' }} · 自由点: {{ d.freePoints||0 }}
         </div>
-      </div>
-    </template>
-
-    <!-- 蛋 -->
-    <template v-if="tab==='eggs'">
-      <button class="btn btn-primary btn-sm" style="margin-bottom:10px;" @click="loadEggs">加载全部蛋</button>
-      <div v-for="e in eggs" :key="e.objectId" class="admin-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <b>{{ e.resultTemplateId||'?' }}</b>
-            <span class="tag" style="font-size:9px;margin-left:6px;" :style="{background:e.status==='incubating'?'#ffd70022':'#4ecca322',color:e.status==='incubating'?'#ffd700':'#4ecca3'}">{{ e.status==='incubating'?'孵化中':'已孵化' }}</span>
-          </div>
-        </div>
-        <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">{{ formatDate(e.createdAt) }}</div>
-        <button v-if="e.status==='incubating'" class="btn btn-danger btn-sm" style="margin-top:4px;" @click="deleteEgg(e.objectId)">删除</button>
       </div>
     </template>
 
@@ -166,12 +150,11 @@ function doAuth() {
 }
 
 const tab = ref('players')
-const tabs = [{key:'players',label:'👤 玩家'},{key:'digimon',label:'🐉 数码兽'},{key:'eggs',label:'🥚 数码蛋'}]
+const tabs = [{key:'players',label:'👤 玩家'},{key:'digimon',label:'🐉 数码兽'}]
 
 const playerSearch = ref(''), players = ref([])
 const digiSearch = ref(''), digimons = ref([])
-const eggs = ref([])
-const stats = ref({players:0,digimons:0,eggs:0,totalBits:0})
+const stats = ref({players:0,digimons:0,totalBits:0})
 
 const showPlayerModal = ref(false), playerDetail = ref(null), editGold = ref(0)
 const showDigiModal = ref(false), digiDetail = ref(null), editLevel = ref(0), editTemplateId = ref('')
@@ -215,14 +198,12 @@ function itemName(id) {
 
 async function loadStats() {
   try {
-    const [p,d,e] = await Promise.all([
+    const [p,d] = await Promise.all([
       api.queryAll('_User', {}, true),
-      api.queryAll('PlayerDigimon', {}, true),
-      api.queryAll('PlayerEgg', {}, true)
+      api.queryAll('PlayerDigimon', {}, true)
     ])
     stats.value.players = (p.results||[]).length
     stats.value.digimons = (d.results||[]).length
-    stats.value.eggs = (e.results||[]).length
     stats.value.totalBits = (p.results||[]).reduce((s,u)=>s+(u.gold||0),0)
   } catch(e) {}
 }
@@ -246,17 +227,9 @@ async function loadDigimons() {
   } catch(e) { alert('加载失败: '+e.message) }
 }
 
-async function loadEggs() {
-  try {
-    const res = await api.queryAll('PlayerEgg', {}, true)
-    eggs.value = (res.results||[]).sort((a,b)=>new Date(b.createdAt||0).getTime()-new Date(a.createdAt||0).getTime())
-  } catch(e) { alert('加载失败: '+e.message) }
-}
-
 function onTabChange() {
   if (tab.value==='players') loadPlayers()
   else if (tab.value==='digimon') loadDigimons()
-  else if (tab.value==='eggs') loadEggs()
 }
 
 async function openPlayer(p) {
@@ -288,11 +261,6 @@ async function updateDigiTemplate() {
 async function deleteDigi(id) {
   if (!confirm('确定删除？不可恢复！')) return
   try { await api.delete('PlayerDigimon', id, true); showDigiModal.value = false; alert('已删除'); loadDigimons() } catch(e) { alert('删除失败: '+e.message) }
-}
-
-async function deleteEgg(id) {
-  if (!confirm('确定删除？')) return
-  try { await api.delete('PlayerEgg', id, true); loadEggs(); loadStats() } catch(e) { alert('删除失败: '+e.message) }
 }
 
 function countSkills(d) { try { const arr = typeof d.learnedSkills === 'string' ? JSON.parse(d.learnedSkills) : (d.learnedSkills||[]); return arr.length } catch(e) { return 0 } }
