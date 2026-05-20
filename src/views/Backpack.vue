@@ -182,6 +182,19 @@ function getCategoryCount(cat) {
 }
 
 async function useItem(item) {
+  if (item.id === 'equip_chest') {
+    const isBadge = Math.random() < 0.5
+    const gear = isBadge ? rollBadge() : rollDigivice()
+    const prefix = isBadge ? 'eqb_' : 'eqd_'
+    let idx = 0; while (playerItems.value[prefix+idx] !== undefined) idx++
+    playerItems.value[prefix+idx] = JSON.stringify(gear)
+    playerItems.value['equip_chest'] = Math.max(0, (playerItems.value['equip_chest']||0)-1)
+    await saveItems()
+    const sl2 = s => ({hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',mp:'MP'}[s]||s)
+    const gearDesc = isBadge ? `${gear.icon} ${gear.name} ${sl2(gear.stat)}+${gear.value}` : `${gear.icon} ${gear.name} `+Object.entries(gear.stats||{}).map(([k,v])=>sl2(k)+'+'+v).join(' ')
+    alert(`🎁 获得装备！\n${gearDesc}\n已放入背包装备栏`)
+    return
+  }
   const all = await getMyDigimons()
   if (all.length === 0) { alert('没有数码兽'); return }
   if (item.id === 'skill_scroll') {
@@ -236,17 +249,6 @@ async function applyItem(digimon) {
     await saveItems()
     showUseModal.value = false
     alert(`${digimon.nickname||getTplName(digimon.templateId)} 学会了 ${skill.name}！`)
-  } else if (usingItem.value?.id === 'equip_chest') {
-    const isBadge = Math.random() < 0.5
-    const gear = isBadge ? rollBadge() : rollDigivice()
-    const prefix = isBadge ? 'eqb_' : 'eqd_'
-    let idx = 0; while (playerItems.value[prefix+idx] !== undefined) idx++
-    playerItems.value[prefix+idx] = JSON.stringify(gear)
-    playerItems.value['equip_chest'] = Math.max(0, (playerItems.value['equip_chest']||0)-1)
-    await saveItems(); showUseModal.value = false
-    const sl2 = s => ({hp:'HP',atk:'攻击',def:'防御',spAtk:'特攻',spDef:'特防',spd:'速度',mp:'MP'}[s]||s)
-    const gearDesc = isBadge ? `${gear.name} ${gear.icon} ${sl2(gear.stat)}+${gear.value}` : `${gear.name} ${gear.icon} ${Object.entries(gear.stats).map(([k,v])=>sl2(k)+'+'+v).join(' ')}`
-    alert(`🎁 ${isBadge?'徽章':'暴龙机'}！\n${gearDesc}\n已放入背包，点击可装备给数码兽`)
   } else if (usingItem.value?.id === 'name_tag') {
     const name = prompt('请输入新名字：', digimon.nickname || getTplName(digimon.templateId))
     if (!name || name.trim() === '') return
