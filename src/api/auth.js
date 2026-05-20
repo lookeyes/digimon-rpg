@@ -5,10 +5,10 @@ export async function register(username, password) {
   if (result.sessionToken) {
     api.saveToken(result.sessionToken)
     try {
-      await api.updateUser(result.objectId, { gold: 2000 })
-      result.gold = 2000
+      await api.updateUser(result.objectId, { gold: 10000 })
+      result.gold = 10000
     } catch (e) {
-      result.gold = 2000
+      result.gold = 10000
     }
     localStorage.setItem('user', JSON.stringify(result))
   }

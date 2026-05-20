@@ -8,7 +8,7 @@ function userPointer() { const id = userId(); if (!id) return null; return { __t
 export async function getPlayerInfo() {
   const id = userId(); if (!id) throw new Error('未登录')
   const user = await api.getUser(id)
-  return { objectId:user.objectId, username:user.username, playerName:user.playerName||user.username, gold:user.gold??500, items:user.items||'{}', presets:user.presets||null, activePreset:user.activePreset??0 }
+  return { objectId:user.objectId, username:user.username, playerName:user.playerName||user.username, gold:user.gold??10000, items:user.items||'{}', presets:user.presets||null, activePreset:user.activePreset??0 }
 }
 
 export async function spendGold(amount) { const info = await getPlayerInfo(); if (info.gold < amount) throw new Error('金币不足'); await api.updateUser(userId(), { gold: info.gold - amount }); return info.gold - amount }
