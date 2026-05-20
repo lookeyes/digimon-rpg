@@ -12,6 +12,10 @@
     </div>
 
     <div class="about-section">
+      <router-link to="/skills" style="display:block;background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;text-align:center;text-decoration:none;color:var(--accent);font-weight:700;font-size:14px;">📜 查看全部通用技能 →</router-link>
+    </div>
+
+    <div class="about-section">
       <div class="about-section-title">🎮 核心玩法</div>
       <div class="about-cards">
         <div class="about-card"><div class="about-card-icon">🥚</div><div class="about-card-title">获取数码蛋</div><div class="about-card-desc">在商城购买数码蛋，每颗蛋对应不同领域的数码宝贝。孵化后即可获得属于你的伙伴。</div></div>
